@@ -25,7 +25,7 @@ public class AccountController {
     private final AccountFacade accountFacade;
 
     @PostMapping("/v1/accounts")
-    @Operation(summary = "계좌 생성", description = "새 계좌를 생성합니다. (초기 잔액은 0원 시작)")
+    @Operation(summary = "계좌 생성", description = "새 계좌를 생성합니다.")
     public ResponseEntity<CreateAccountResponse> createAccount(
             @Valid @RequestBody CreateAccountRequest request
     ) {
@@ -34,7 +34,7 @@ public class AccountController {
     }
 
     @DeleteMapping("/v1/accounts/{accountId}")
-    @Operation(summary = "계좌 삭제", description = "계좌를 삭제(또는 비활성화)합니다.")
+    @Operation(summary = "계좌 삭제", description = "계좌를 삭제합니다.")
     public ResponseEntity<Void> deleteAccount(
             @PathVariable long accountId
     ) {
