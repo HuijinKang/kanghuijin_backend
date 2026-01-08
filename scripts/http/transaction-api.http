@@ -1,6 +1,19 @@
 @host = http://localhost:8080
 
-### 입금 (201)
+### (준비) 계좌 생성 (201) + accountId 저장
+POST {{host}}/api/v1/accounts
+Content-Type: application/json
+
+{
+  "accountNumber": "123456789012",
+  "ownerName": "홍길동"
+}
+
+> {%
+  client.global.set("accountId", response.body.accountId);
+%}
+
+### 입금 (204)
 POST {{host}}/api/v1/accounts/{{accountId}}/deposits
 Content-Type: application/json
 
@@ -8,7 +21,7 @@ Content-Type: application/json
   "amount": 2000
 }
 
-### 출금 (201)
+### 출금 (204)
 POST {{host}}/api/v1/accounts/{{accountId}}/withdrawals
 Content-Type: application/json
 
@@ -16,7 +29,7 @@ Content-Type: application/json
   "amount": 500
 }
 
-### 이체 (201)
+### 이체 (204)
 POST {{host}}/api/v1/transfers
 Content-Type: application/json
 
