@@ -1,5 +1,7 @@
 package com.example.remittanceservice.presentation.controller;
 
+import com.example.remittanceservice.application.command.CreateAccountCommand;
+import com.example.remittanceservice.application.dto.AccountResult;
 import com.example.remittanceservice.application.facade.AccountFacade;
 import com.example.remittanceservice.presentation.dto.AccountDto.CreateAccountRequest;
 import com.example.remittanceservice.presentation.dto.AccountDto.CreateAccountResponse;
@@ -29,8 +31,16 @@ public class AccountController {
     public ResponseEntity<CreateAccountResponse> createAccount(
             @Valid @RequestBody CreateAccountRequest request
     ) {
-        return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED)
-                .body(CreateAccountResponse.notImplemented());
+        AccountResult created = accountFacade.createAccount(
+                CreateAccountCommand.of(request.accountNumber(), request.ownerName())
+        );
+
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(CreateAccountResponse.of(
+                        created.accountId(),
+                        created.accountNumber(),
+                        created.ownerName()
+                ));
     }
 
     @DeleteMapping("/v1/accounts/{accountId}")
@@ -38,6 +48,7 @@ public class AccountController {
     public ResponseEntity<Void> deleteAccount(
             @PathVariable long accountId
     ) {
-        return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
+        accountFacade.deleteAccount(accountId);
+        return ResponseEntity.noContent().build();
     }
 }

@@ -1,0 +1,33 @@
+@host = http://localhost:8080
+
+### 계좌 생성 (201)
+POST {{host}}/api/v1/accounts
+Content-Type: application/json
+
+{
+  "accountNumber": "123456789012",
+  "ownerName": "홍길동"
+}
+
+> {%
+  client.global.set("accountId", response.body.accountId);
+%}
+
+### 계좌 생성 중복 (409)
+POST {{host}}/api/v1/accounts
+Content-Type: application/json
+
+{
+  "accountNumber": "123456789012",
+  "ownerName": "홍길동"
+}
+
+### 계좌 삭제(해지) (204)
+DELETE {{host}}/api/v1/accounts/{{accountId}}
+
+### 계좌 삭제 재시도(멱등) (204)
+DELETE {{host}}/api/v1/accounts/{{accountId}}
+
+### 없는 계좌 삭제 (404)
+DELETE {{host}}/api/v1/accounts/99999999
+

@@ -1,6 +1,7 @@
 package com.example.remittanceservice.common.error;
 
 import com.example.remittanceservice.common.exception.CoreException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -26,6 +27,12 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleNotImplemented(UnsupportedOperationException e) {
         return ResponseEntity.status(ErrorCode.NOT_IMPLEMENTED.getHttpStatus().value())
                 .body(ErrorResponse.of(ErrorCode.NOT_IMPLEMENTED));
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ErrorResponse> handleDataIntegrity(DataIntegrityViolationException e) {
+        return ResponseEntity.status(ErrorCode.DUPLICATE_ACCOUNT.getHttpStatus().value())
+                .body(ErrorResponse.of(ErrorCode.DUPLICATE_ACCOUNT));
     }
 
     @ExceptionHandler(Exception.class)

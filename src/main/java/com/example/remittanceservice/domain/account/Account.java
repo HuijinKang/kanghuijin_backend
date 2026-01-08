@@ -1,14 +1,11 @@
 package com.example.remittanceservice.domain.account;
 
+import com.example.remittanceservice.domain.common.BaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import java.time.Instant;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -17,11 +14,7 @@ import lombok.NoArgsConstructor;
 @Table(name = "accounts")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Account {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+public class Account extends BaseEntity {
 
     @Column(nullable = false, unique = true, length = 50)
     private String accountNumber;
@@ -36,15 +29,23 @@ public class Account {
     @Column(nullable = false, length = 20)
     private AccountStatus status;
 
-    @Column(nullable = false)
-    private Instant createdAt;
-
-    private Account(String accountNumber, String ownerName, long initialBalance, AccountStatus status, Instant createdAt) {
+    private Account(String accountNumber, String ownerName, long initialBalance, AccountStatus status) {
         this.accountNumber = accountNumber;
         this.ownerName = ownerName;
         this.balance = initialBalance;
         this.status = status == null ? AccountStatus.ACTIVE : status;
-        this.createdAt = createdAt;
     }
 
+    public static Account create(String accountNumber, String ownerName) {
+        return new Account(accountNumber, ownerName, 0L, AccountStatus.ACTIVE);
+    }
+
+    public void close() {
+        this.status = AccountStatus.CLOSED;
+        softDelete();
+    }
+
+    public boolean isClosed() {
+        return this.status == AccountStatus.CLOSED;
+    }
 }
