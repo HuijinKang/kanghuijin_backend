@@ -57,24 +57,4 @@ public class Transaction extends BaseEntity {
         this.counterpartyAccountNumber = counterpartyAccountNumber;
     }
 
-    public static Transaction create(
-            Account account,
-            TransactionType type,
-            long amount,
-            long fee,
-            String counterpartyAccountNumber
-    ) {
-        return new Transaction(account, type, TransactionStatus.SUCCESS, amount, fee, counterpartyAccountNumber);
-    }
-
-    public static Transaction create(
-            Account account,
-            TransactionType type,
-            TransactionStatus status,
-            long amount,
-            long fee,
-            String counterpartyAccountNumber
-    ) {
-        return new Transaction(account, type, status, amount, fee, counterpartyAccountNumber);
-    }
 }
