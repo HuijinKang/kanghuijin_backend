@@ -1,0 +1,35 @@
+@host = http://localhost:8080
+
+### 입금 (201)
+POST {{host}}/api/v1/accounts/{{accountId}}/deposits
+Content-Type: application/json
+
+{
+  "amount": 2000
+}
+
+### 출금 (201)
+POST {{host}}/api/v1/accounts/{{accountId}}/withdrawals
+Content-Type: application/json
+
+{
+  "amount": 500
+}
+
+### 이체 (201)
+POST {{host}}/api/v1/transfers
+Content-Type: application/json
+
+{
+  "fromAccountNumber": "123456789012",
+  "toAccountNumber": "999999999999",
+  "amount": 1000
+}
+
+### 출금 한도 초과 (400)
+POST {{host}}/api/v1/accounts/{{accountId}}/withdrawals
+Content-Type: application/json
+
+{
+  "amount": 1000001
+}

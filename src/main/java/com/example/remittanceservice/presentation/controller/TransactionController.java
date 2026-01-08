@@ -1,15 +1,16 @@
 package com.example.remittanceservice.presentation.controller;
 
 import com.example.remittanceservice.application.facade.TransactionFacade;
+import com.example.remittanceservice.application.command.DepositCommand;
+import com.example.remittanceservice.application.command.WithdrawCommand;
+import com.example.remittanceservice.application.command.TransferCommand;
 import com.example.remittanceservice.presentation.dto.TransactionDto.DepositRequest;
-import com.example.remittanceservice.presentation.dto.TransactionDto.TransactionResponse;
 import com.example.remittanceservice.presentation.dto.TransactionDto.TransferRequest;
 import com.example.remittanceservice.presentation.dto.TransactionDto.WithdrawRequest;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -27,28 +28,30 @@ public class TransactionController {
 
     @PostMapping("/v1/accounts/{accountId}/deposits")
     @Operation(summary = "입금", description = "특정 계좌에 금액을 입금합니다.")
-    public ResponseEntity<TransactionResponse> deposit(
+    public ResponseEntity<Void> deposit(
             @PathVariable long accountId,
             @Valid @RequestBody DepositRequest request
     ) {
-        return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED)
-                .body(TransactionResponse.notImplemented());
+        transactionFacade.deposit(new DepositCommand(accountId, request.amount()));
+        return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/v1/accounts/{accountId}/withdrawals")
     @Operation(summary = "출금", description = "특정 계좌에서 금액을 출금합니다. (일 한도 1,000,000원)")
-    public ResponseEntity<TransactionResponse> withdraw(
+    public ResponseEntity<Void> withdraw(
             @PathVariable long accountId,
             @Valid @RequestBody WithdrawRequest request
     ) {
-        return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED)
-                .body(TransactionResponse.notImplemented());
+        transactionFacade.withdraw(new WithdrawCommand(accountId, request.amount()));
+        return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/v1/transfers")
     @Operation(summary = "이체", description = "다른 계좌로 이체합니다. (수수료 1%, 일 한도 3,000,000원)")
-    public ResponseEntity<TransactionResponse> transfer(@Valid @RequestBody TransferRequest request) {
-        return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED)
-                .body(TransactionResponse.notImplemented());
+    public ResponseEntity<Void> transfer(@Valid @RequestBody TransferRequest request) {
+        transactionFacade.transfer(
+                new TransferCommand(request.fromAccountNumber(), request.toAccountNumber(), request.amount())
+        );
+        return ResponseEntity.noContent().build();
     }
 }

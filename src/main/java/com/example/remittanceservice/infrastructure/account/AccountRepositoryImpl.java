@@ -1,6 +1,6 @@
-package com.example.remittanceservice.infrastructure.persistence;
+package com.example.remittanceservice.infrastructure.account;
 
-import com.example.remittanceservice.application.port.out.AccountRepository;
+import com.example.remittanceservice.domain.account.AccountRepository;
 import com.example.remittanceservice.domain.account.Account;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
@@ -8,7 +8,7 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 @RequiredArgsConstructor
-public class AccountRepositoryAdapter implements AccountRepository {
+public class AccountRepositoryImpl implements AccountRepository {
 
     private final AccountJpaRepository accountJpaRepository;
 
@@ -18,8 +18,18 @@ public class AccountRepositoryAdapter implements AccountRepository {
     }
 
     @Override
+    public Optional<Account> findByIdForUpdate(long id) {
+        return accountJpaRepository.findByIdForUpdate(id);
+    }
+
+    @Override
     public Optional<Account> findByAccountNumber(String accountNumber) {
         return accountJpaRepository.findByAccountNumber(accountNumber);
+    }
+
+    @Override
+    public Optional<Account> findByAccountNumberForUpdate(String accountNumber) {
+        return accountJpaRepository.findByAccountNumberForUpdate(accountNumber);
     }
 
     @Override

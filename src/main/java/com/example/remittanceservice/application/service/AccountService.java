@@ -1,7 +1,7 @@
 package com.example.remittanceservice.application.service;
 
 import com.example.remittanceservice.application.command.CreateAccountCommand;
-import com.example.remittanceservice.application.port.out.AccountRepository;
+import com.example.remittanceservice.domain.account.AccountRepository;
 import com.example.remittanceservice.common.error.ErrorCode;
 import com.example.remittanceservice.common.exception.CoreException;
 import com.example.remittanceservice.domain.account.Account;

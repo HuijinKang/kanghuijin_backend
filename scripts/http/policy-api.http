@@ -1,0 +1,14 @@
+@host = http://localhost:8080
+
+### 정책 조회 (200)
+GET {{host}}/api/v1/policies/DEFAULT
+
+### 정책 Upsert (200)
+PUT {{host}}/api/v1/policies/DEFAULT
+Content-Type: application/json
+
+{
+  "withdrawDailyLimit": 500000,
+  "transferDailyLimit": 1500000,
+  "transferFeeBps": 50
+}
