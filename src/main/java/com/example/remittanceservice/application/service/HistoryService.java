@@ -1,6 +1,6 @@
 package com.example.remittanceservice.application.service;
 
-import com.example.remittanceservice.application.port.out.TransactionRepository;
+import com.example.remittanceservice.domain.transaction.TransactionRepository;
 import com.example.remittanceservice.domain.transaction.Transaction;
 import java.util.List;
 import lombok.RequiredArgsConstructor;

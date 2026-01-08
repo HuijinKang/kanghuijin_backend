@@ -8,7 +8,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.example.remittanceservice.TestcontainersConfiguration;
 import com.example.remittanceservice.domain.account.Account;
 import com.example.remittanceservice.domain.account.AccountStatus;
-import com.example.remittanceservice.infrastructure.persistence.AccountJpaRepository;
+import com.example.remittanceservice.infrastructure.account.AccountJpaRepository;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
