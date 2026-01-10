@@ -1,4 +1,4 @@
-package com.example.remittanceservice.presentation.controller;
+package com.example.remittanceservice.integration;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -24,7 +24,6 @@ import org.springframework.test.web.servlet.MockMvc;
 @Import(TestcontainersConfiguration.class)
 @SpringBootTest
 @AutoConfigureMockMvc
-@SuppressWarnings("null")
 class TransactionApiIntegrationTest {
 
     @Autowired
@@ -54,8 +53,8 @@ class TransactionApiIntegrationTest {
     @Test
     @DisplayName("입금/출금/이체 통합: 잔액 반영 + 수수료(1%) 적용")
     void depositWithdrawTransfer_flow() throws Exception {
-        String fromNo = String.valueOf(Math.abs(System.nanoTime())).substring(0, 12);
-        String toNo = String.valueOf(Math.abs(System.nanoTime() + 1)).substring(0, 12);
+        String fromNo = last12Digits(System.nanoTime());
+        String toNo = last12Digits(System.nanoTime() + 1);
 
         Account from = accountJpaRepository.save(Account.create(fromNo, "보내는사람"));
         Account to = accountJpaRepository.save(Account.create(toNo, "받는사람"));
@@ -94,5 +93,13 @@ class TransactionApiIntegrationTest {
         // 2000 - 500 - (1000 + 10) = 490
         assertThat(fromAfter.getBalance()).isEqualTo(490L);
         assertThat(toAfter.getBalance()).isEqualTo(1000L);
+    }
+
+    private static String last12Digits(long value) {
+        String s = String.valueOf(Math.abs(value));
+        if (s.length() >= 12) {
+            return s.substring(s.length() - 12);
+        }
+        return "0".repeat(12 - s.length()) + s;
     }
 }

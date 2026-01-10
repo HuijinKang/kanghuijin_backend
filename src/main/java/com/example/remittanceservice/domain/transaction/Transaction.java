@@ -58,18 +58,55 @@ public class Transaction extends BaseEntity {
     }
 
     public static Transaction deposit(Account account, long amount) {
-        return new Transaction(account, TransactionType.DEPOSIT, TransactionStatus.SUCCESS, amount, 0L, null);
+        return new Transaction(
+                account,
+                TransactionType.DEPOSIT,
+                TransactionStatus.SUCCESS,
+                amount,
+                0L,
+                null
+        );
     }
 
     public static Transaction withdraw(Account account, long amount) {
-        return new Transaction(account, TransactionType.WITHDRAW, TransactionStatus.SUCCESS, amount, 0L, null);
+        return new Transaction(
+                account,
+                TransactionType.WITHDRAW,
+                TransactionStatus.SUCCESS,
+                amount,
+                0L,
+                null
+        );
     }
 
-    public static Transaction transferOut(Account fromAccount, String toAccountNumber, long amount, long fee) {
-        return new Transaction(fromAccount, TransactionType.TRANSFER_OUT, TransactionStatus.SUCCESS, amount, fee, toAccountNumber);
+    public static Transaction transferOut(
+            Account fromAccount,
+            String toAccountNumber,
+            long amount,
+            long fee
+    ) {
+        return new Transaction(
+                fromAccount,
+                TransactionType.TRANSFER_OUT,
+                TransactionStatus.SUCCESS,
+                amount,
+                fee,
+                toAccountNumber
+        );
     }
 
-    public static Transaction transferIn(Account toAccount, String fromAccountNumber, long amount) {
-        return new Transaction(toAccount, TransactionType.TRANSFER_IN, TransactionStatus.SUCCESS, amount, 0L, fromAccountNumber);
+    public static Transaction transferIn(
+            Account toAccount,
+            String fromAccountNumber,
+            long amount
+    ) {
+        return new Transaction(
+                toAccount,
+                TransactionType.TRANSFER_IN,
+                TransactionStatus.SUCCESS,
+                amount,
+                0L,
+                fromAccountNumber
+        );
     }
 }

@@ -16,7 +16,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class PolicyConfig extends BaseEntity {
 
-    @Column(name = "config_key", nullable = false, unique = true, length = 50)
+    @Column(name = "policy_type", nullable = false, unique = true, length = 50)
     @Enumerated(EnumType.STRING)
     private PolicyType policyType;
 
@@ -41,7 +41,12 @@ public class PolicyConfig extends BaseEntity {
         this.transferFeeBps = transferFeeBps;
     }
 
-    public static PolicyConfig of(PolicyType policyType, long withdrawDailyLimit, long transferDailyLimit, int transferFeeBps) {
+    public static PolicyConfig of(
+            PolicyType policyType,
+            long withdrawDailyLimit,
+            long transferDailyLimit,
+            int transferFeeBps
+    ) {
         return new PolicyConfig(policyType, withdrawDailyLimit, transferDailyLimit, transferFeeBps);
     }
 

@@ -32,7 +32,7 @@ public class TransactionController {
             @PathVariable long accountId,
             @Valid @RequestBody DepositRequest request
     ) {
-        transactionFacade.deposit(new DepositCommand(accountId, request.amount()));
+        transactionFacade.deposit(DepositCommand.of(accountId, request.amount()));
         return ResponseEntity.noContent().build();
     }
 
@@ -42,15 +42,17 @@ public class TransactionController {
             @PathVariable long accountId,
             @Valid @RequestBody WithdrawRequest request
     ) {
-        transactionFacade.withdraw(new WithdrawCommand(accountId, request.amount()));
+        transactionFacade.withdraw(WithdrawCommand.of(accountId, request.amount()));
         return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/v1/transfers")
     @Operation(summary = "이체", description = "다른 계좌로 이체합니다. (수수료 1%, 일 한도 3,000,000원)")
-    public ResponseEntity<Void> transfer(@Valid @RequestBody TransferRequest request) {
+    public ResponseEntity<Void> transfer(
+            @Valid @RequestBody TransferRequest request
+    ) {
         transactionFacade.transfer(
-                new TransferCommand(request.fromAccountNumber(), request.toAccountNumber(), request.amount())
+                TransferCommand.of(request.fromAccountNumber(), request.toAccountNumber(), request.amount())
         );
         return ResponseEntity.noContent().build();
     }

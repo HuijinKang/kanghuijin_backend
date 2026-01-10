@@ -127,6 +127,6 @@ public class TransactionService {
 
     private static long calculateFee(long amount, int feeBps) {
         // feeBps: 100 bps = 1.00%
-        return (amount * (long) feeBps) / 10_000L;
+        return (amount * feeBps) / 10_000L;
     }
 }

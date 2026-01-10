@@ -43,7 +43,24 @@
 - **400 Bad Request**: 요청 값 검증 실패(예: 계좌번호 형식 오류, 빈 값)
 - **409 Conflict**: `accountNumber` 중복 (`DUPLICATE_ACCOUNT`)
 
-### 2) 계좌 삭제(해지)
+### 2) 계좌 상세 조회
+- **GET** `/api/v1/accounts/{accountId}`
+
+#### Response (200 OK)
+```json
+{
+  "accountId": 1,
+  "accountNumber": "123456789012",
+  "ownerName": "홍길동",
+  "balance": 50000,
+  "status": "ACTIVE"
+}
+```
+
+#### Error Responses
+- **404 Not Found**: 존재하지 않는 계좌 (`NOT_FOUND`)
+
+### 3) 계좌 삭제(해지)
 - **DELETE** `/api/v1/accounts/{accountId}`
 
 #### Response
@@ -113,6 +130,96 @@
 #### Error Responses
 - **400 Bad Request**: 일 한도 초과 (`DAILY_LIMIT_EXCEEDED`), 잔액 부족 (`INSUFFICIENT_BALANCE`), 해지 계좌 (`ACCOUNT_CLOSED`)
 - **404 Not Found**: 계좌를 찾을 수 없음 (`NOT_FOUND`)
+
+## 거래내역 조회 API
+
+### 입금 내역 조회
+- **GET** `/api/v1/accounts/{accountId}/deposits`
+
+#### Query params
+- `cursor` (optional): 이전 페이지 마지막 `transactionId` (없으면 첫 페이지)
+- `limit` (optional): 기본 50, 최대 200
+
+#### Response (200 OK)
+```json
+{
+  "items": [
+    {
+      "transactionId": 12,
+      "amount": 10000,
+      "createdAt": "2026-01-01T00:00:00Z"
+    }
+  ],
+  "nextCursor": 11
+}
+```
+
+### 출금 내역 조회
+- **GET** `/api/v1/accounts/{accountId}/withdrawals`
+
+#### Query params
+- `cursor` (optional): 이전 페이지 마지막 `transactionId`
+- `limit` (optional): 기본 50, 최대 200
+
+#### Response (200 OK)
+```json
+{
+  "items": [
+    {
+      "transactionId": 10,
+      "amount": 5000,
+      "createdAt": "2026-01-01T01:00:00Z"
+    }
+  ],
+  "nextCursor": null
+}
+```
+
+### 보낸 이체 내역 조회
+- **GET** `/api/v1/accounts/{accountId}/sent-transfers`
+
+#### Query params
+- `cursor` (optional): 이전 페이지 마지막 `transactionId`
+- `limit` (optional): 기본 50, 최대 200
+
+#### Response (200 OK)
+```json
+{
+  "items": [
+    {
+      "transactionId": 15,
+      "amount": 20000,
+      "fee": 200,
+      "counterpartyAccountNumber": "999999999999",
+      "createdAt": "2026-01-01T02:00:00Z"
+    }
+  ],
+  "nextCursor": 14
+}
+```
+
+### 받은 이체 내역 조회
+- **GET** `/api/v1/accounts/{accountId}/received-transfers`
+
+#### Query params
+- `cursor` (optional): 이전 페이지 마지막 `transactionId`
+- `limit` (optional): 기본 50, 최대 200
+
+#### Response (200 OK)
+```json
+{
+  "items": [
+    {
+      "transactionId": 16,
+      "amount": 30000,
+      "fee": 0,
+      "counterpartyAccountNumber": "111111111111",
+      "createdAt": "2026-01-01T03:00:00Z"
+    }
+  ],
+  "nextCursor": null
+}
+```
 
 ## 정책(한도/수수료) 관리 API (선택)
 

@@ -22,7 +22,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 @Tag(
         name = "Policy",
-        description = "정책(한도/수수료) 관리 API (옵션). 과제 필수 요구사항이 아니며, 기본 정책(PolicyType.DEFAULT)은 애플리케이션 시작 시 data.sql로 자동 생성/업데이트됩니다."
+        description = "(옵션) 정책(한도/수수료) 관리 API. 과제 필수 요구사항이 아니며, 기본 정책(PolicyType.DEFAULT)은 " +
+                "애플리케이션 시작 시 data.sql로 자동 생성/업데이트됩니다."
 )
 public class PolicyController {
 
@@ -33,11 +34,17 @@ public class PolicyController {
             summary = "정책 조회(옵션)",
             description = "policyType(enum)으로 정책을 조회합니다."
     )
-    public ResponseEntity<PolicyResponse> get(@PathVariable PolicyType policyType) {
+    public ResponseEntity<PolicyResponse> getPolicy(
+            @PathVariable PolicyType policyType
+    ) {
         PolicyConfig cfg = policyService.getPolicyConfig(policyType);
         return ResponseEntity.ok(
-                PolicyResponse.of(cfg.getPolicyType(), cfg.getWithdrawDailyLimit(), cfg.getTransferDailyLimit(), cfg.getTransferFeeBps())
-        );
+                PolicyResponse.of(
+                        cfg.getPolicyType(),
+                        cfg.getWithdrawDailyLimit(),
+                        cfg.getTransferDailyLimit(),
+                        cfg.getTransferFeeBps()
+                ));
     }
 
     @PutMapping("/v1/policies/{policyType}")
@@ -45,7 +52,10 @@ public class PolicyController {
             summary = "정책 Upsert(옵션)",
             description = "policyType(enum)으로 정책을 생성/수정합니다(Upsert)."
     )
-    public ResponseEntity<PolicyResponse> update(@PathVariable PolicyType policyType, @Valid @RequestBody UpsertPolicyRequest request) {
+    public ResponseEntity<PolicyResponse> updatePolicy(
+            @PathVariable PolicyType policyType,
+            @Valid @RequestBody UpsertPolicyRequest request
+    ) {
         PolicyConfig cfg = policyService.upsertPolicy(
                 policyType,
                 request.withdrawDailyLimit(),
@@ -53,8 +63,12 @@ public class PolicyController {
                 request.transferFeeBps()
         );
         return ResponseEntity.ok(
-                PolicyResponse.of(cfg.getPolicyType(), cfg.getWithdrawDailyLimit(), cfg.getTransferDailyLimit(), cfg.getTransferFeeBps())
-        );
+                PolicyResponse.of(
+                        cfg.getPolicyType(),
+                        cfg.getWithdrawDailyLimit(),
+                        cfg.getTransferDailyLimit(),
+                        cfg.getTransferFeeBps()
+                ));
     }
 }
 

@@ -23,22 +23,17 @@ public class AccountRepositoryImpl implements AccountRepository {
     }
 
     @Override
-    public Optional<Account> findByAccountNumber(String accountNumber) {
-        return accountJpaRepository.findByAccountNumber(accountNumber);
-    }
-
-    @Override
     public Optional<Account> findByAccountNumberForUpdate(String accountNumber) {
         return accountJpaRepository.findByAccountNumberForUpdate(accountNumber);
     }
 
     @Override
-    public Account save(Account account) {
-        return accountJpaRepository.save(account);
+    public boolean existsByAccountNumber(String accountNumber) {
+        return accountJpaRepository.existsByAccountNumber(accountNumber);
     }
 
     @Override
-    public void deleteById(long id) {
-        accountJpaRepository.deleteById(id);
+    public Account save(Account account) {
+        return accountJpaRepository.save(account);
     }
 }
