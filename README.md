@@ -2,11 +2,11 @@
 
 ## API 명세
 
-- API 명세 문서: `docs/api.md`
+- API 명세 문서: [docs/api.md](docs/api.md)
 
 ## API 명세(Swagger)
 
-- Swagger UI: `http://localhost:8080/swagger-ui/index.html`
+- Swagger UI: [http://localhost:8080/swagger-ui/index.html](http://localhost:8080/swagger-ui/index.html)
 
 ## 실행 방법 (Docker Compose)
 
