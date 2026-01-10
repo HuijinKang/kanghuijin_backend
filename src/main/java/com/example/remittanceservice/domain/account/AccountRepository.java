@@ -7,11 +7,9 @@ public interface AccountRepository {
 
     Optional<Account> findByIdForUpdate(long id);
 
-    Optional<Account> findByAccountNumber(String accountNumber);
-
     Optional<Account> findByAccountNumberForUpdate(String accountNumber);
 
-    Account save(Account account);
+    boolean existsByAccountNumber(String accountNumber);
 
-    void deleteById(long id);
+    Account save(Account account);
 }

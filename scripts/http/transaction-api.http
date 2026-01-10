@@ -1,18 +1,5 @@
 @host = http://localhost:8080
 
-### (준비) 계좌 생성 (201) + accountId 저장
-POST {{host}}/api/v1/accounts
-Content-Type: application/json
-
-{
-  "accountNumber": "123456789012",
-  "ownerName": "홍길동"
-}
-
-> {%
-  client.global.set("accountId", response.body.accountId);
-%}
-
 ### 입금 (204)
 POST {{host}}/api/v1/accounts/{{accountId}}/deposits
 Content-Type: application/json
@@ -29,14 +16,14 @@ Content-Type: application/json
   "amount": 500
 }
 
-### 이체 (204)
+### 이체 (수수료 적용) (204)
 POST {{host}}/api/v1/transfers
 Content-Type: application/json
 
 {
   "fromAccountNumber": "123456789012",
   "toAccountNumber": "999999999999",
-  "amount": 1000
+  "amount": 10000
 }
 
 ### 출금 한도 초과 (400)

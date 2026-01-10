@@ -5,4 +5,11 @@ public record TransferCommand(
         String toAccountNumber,
         long amount
 ) {
+    public static TransferCommand of(
+            String fromAccountNumber,
+            String toAccountNumber,
+            long amount
+    ) {
+        return new TransferCommand(fromAccountNumber, toAccountNumber, amount);
+    }
 }

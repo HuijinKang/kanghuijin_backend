@@ -17,13 +17,19 @@ public class PolicyService {
 
     @Transactional(readOnly = true)
     public PolicyConfig getPolicyConfig(PolicyType policyType) {
-        return policyConfigRepository.findByPolicyType(policyType)
+        PolicyConfig policyConfig = policyConfigRepository.findByPolicyType(policyType)
                 .orElseThrow(() -> new CoreException(ErrorCode.NOT_FOUND, "PolicyConfig(%s) not found".formatted(policyType)));
+        return policyConfig;
     }
 
     @Transactional
-    public PolicyConfig upsertPolicy(PolicyType policyType, long withdrawDailyLimit, long transferDailyLimit, int transferFeeBps) {
-        return policyConfigRepository.findByPolicyType(policyType)
+    public PolicyConfig upsertPolicy(
+            PolicyType policyType,
+            long withdrawDailyLimit,
+            long transferDailyLimit,
+            int transferFeeBps
+    ) {
+        PolicyConfig result = policyConfigRepository.findByPolicyType(policyType)
                 .map(existing -> {
                     existing.update(withdrawDailyLimit, transferDailyLimit, transferFeeBps);
                     return policyConfigRepository.save(existing);
@@ -31,6 +37,6 @@ public class PolicyService {
                 .orElseGet(() -> policyConfigRepository.save(
                         PolicyConfig.of(policyType, withdrawDailyLimit, transferDailyLimit, transferFeeBps)
                 ));
+        return result;
     }
-
 }

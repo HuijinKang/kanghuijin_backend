@@ -31,7 +31,12 @@ public class Account extends BaseEntity {
     @Column(nullable = false, length = 20)
     private AccountStatus status;
 
-    private Account(String accountNumber, String ownerName, long initialBalance, AccountStatus status) {
+    private Account(
+            String accountNumber,
+            String ownerName,
+            long initialBalance,
+            AccountStatus status
+    ) {
         this.accountNumber = accountNumber;
         this.ownerName = ownerName;
         this.balance = initialBalance;

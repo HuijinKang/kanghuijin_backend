@@ -22,8 +22,18 @@ public final class PolicyDto {
             long transferDailyLimit,
             int transferFeeBps
     ) {
-        public static PolicyResponse of(PolicyType policyType, long withdrawDailyLimit, long transferDailyLimit, int transferFeeBps) {
-            return new PolicyResponse(policyType, withdrawDailyLimit, transferDailyLimit, transferFeeBps);
+        public static PolicyResponse of(
+                PolicyType policyType,
+                long withdrawDailyLimit,
+                long transferDailyLimit,
+                int transferFeeBps
+        ) {
+            return new PolicyResponse(
+                    policyType,
+                    withdrawDailyLimit,
+                    transferDailyLimit,
+                    transferFeeBps
+            );
         }
     }
 }

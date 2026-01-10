@@ -24,8 +24,40 @@ public final class AccountDto {
             String accountNumber,
             String ownerName
     ) {
-        public static CreateAccountResponse of(long accountId, String accountNumber, String ownerName) {
-            return new CreateAccountResponse(accountId, accountNumber, ownerName);
+        public static CreateAccountResponse of(
+                long accountId,
+                String accountNumber,
+                String ownerName
+        ) {
+            return new CreateAccountResponse(
+                    accountId,
+                    accountNumber,
+                    ownerName
+            );
+        }
+    }
+
+    public record AccountDetailResponse(
+            long accountId,
+            String accountNumber,
+            String ownerName,
+            long balance,
+            String status
+    ) {
+        public static AccountDetailResponse of(
+                long accountId,
+                String accountNumber,
+                String ownerName,
+                long balance,
+                String status
+        ) {
+            return new AccountDetailResponse(
+                    accountId,
+                    accountNumber,
+                    ownerName,
+                    balance,
+                    status
+            );
         }
     }
 }

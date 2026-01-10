@@ -46,7 +46,7 @@ class TransactionServiceTest {
         Account account = mock(Account.class);
         when(accountRepository.findByIdForUpdate(1L)).thenReturn(Optional.of(account));
 
-        transactionService.deposit(new DepositCommand(1L, 500L));
+        transactionService.deposit(DepositCommand.of(1L, 500L));
 
         verify(transactionRepository).save(any(Transaction.class));
     }
@@ -66,7 +66,7 @@ class TransactionServiceTest {
                 any(ZonedDateTime.class)
         )).thenReturn(99L);
 
-        assertThatThrownBy(() -> transactionService.withdraw(new WithdrawCommand(1L, 2L), 100L))
+        assertThatThrownBy(() -> transactionService.withdraw(WithdrawCommand.of(1L, 2L), 100L))
                 .isInstanceOf(CoreException.class)
                 .extracting("errorCode")
                 .isEqualTo(ErrorCode.DAILY_LIMIT_EXCEEDED);
@@ -95,7 +95,11 @@ class TransactionServiceTest {
                 any(ZonedDateTime.class)
         )).thenReturn(0L);
 
-        assertThatThrownBy(() -> transactionService.transfer(new TransferCommand("111111111111", "222222222222", 100L), 3_000_000L, 100))
+        assertThatThrownBy(() -> transactionService.transfer(
+                TransferCommand.of("111111111111", "222222222222", 100L),
+                3_000_000L,
+                100
+        ))
                 .isInstanceOf(CoreException.class)
                 .extracting("errorCode")
                 .isEqualTo(ErrorCode.INSUFFICIENT_BALANCE);

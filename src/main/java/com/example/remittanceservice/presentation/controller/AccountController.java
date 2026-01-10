@@ -1,8 +1,10 @@
 package com.example.remittanceservice.presentation.controller;
 
 import com.example.remittanceservice.application.command.CreateAccountCommand;
-import com.example.remittanceservice.application.dto.AccountResult;
+import com.example.remittanceservice.application.dto.AccountDetailResult;
+import com.example.remittanceservice.application.dto.CreateAccountResult;
 import com.example.remittanceservice.application.facade.AccountFacade;
+import com.example.remittanceservice.presentation.dto.AccountDto.AccountDetailResponse;
 import com.example.remittanceservice.presentation.dto.AccountDto.CreateAccountRequest;
 import com.example.remittanceservice.presentation.dto.AccountDto.CreateAccountResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -12,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -31,7 +34,7 @@ public class AccountController {
     public ResponseEntity<CreateAccountResponse> createAccount(
             @Valid @RequestBody CreateAccountRequest request
     ) {
-        AccountResult created = accountFacade.createAccount(
+        CreateAccountResult created = accountFacade.createAccount(
                 CreateAccountCommand.of(request.accountNumber(), request.ownerName())
         );
 
@@ -41,6 +44,21 @@ public class AccountController {
                         created.accountNumber(),
                         created.ownerName()
                 ));
+    }
+
+    @GetMapping("/v1/accounts/{accountId}")
+    @Operation(summary = "계좌 상세 조회", description = "계좌의 상세 정보를 조회합니다.")
+    public ResponseEntity<AccountDetailResponse> getAccount(@PathVariable long accountId) {
+        AccountDetailResult result = accountFacade.getAccount(accountId);
+        return ResponseEntity.ok(
+                AccountDetailResponse.of(
+                        result.accountId(),
+                        result.accountNumber(),
+                        result.ownerName(),
+                        result.balance(),
+                        result.status()
+                )
+        );
     }
 
     @DeleteMapping("/v1/accounts/{accountId}")

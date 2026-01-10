@@ -1,0 +1,22 @@
+@host = http://localhost:8080
+
+### 입금 내역 조회 (첫 페이지)
+GET {{host}}/api/v1/accounts/{{accountId}}/deposits?limit=10
+
+> {%
+  if (response.body.nextCursor) {
+    client.global.set("depositCursor", response.body.nextCursor);
+  }
+%}
+
+### 입금 내역 조회 (다음 페이지) - 위에서 nextCursor가 있을 때만 실행
+GET {{host}}/api/v1/accounts/{{accountId}}/deposits?cursor={{depositCursor}}&limit=10
+
+### 출금 내역 조회
+GET {{host}}/api/v1/accounts/{{accountId}}/withdrawals?limit=10
+
+### 보낸 이체 내역 조회
+GET {{host}}/api/v1/accounts/{{accountId}}/sent-transfers?limit=10
+
+### 받은 이체 내역 조회
+GET {{host}}/api/v1/accounts/{{accountId}}/received-transfers?limit=10
