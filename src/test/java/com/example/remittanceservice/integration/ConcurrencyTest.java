@@ -27,6 +27,7 @@ import org.springframework.context.annotation.Import;
 
 @Import(TestcontainersConfiguration.class)
 @SpringBootTest
+@SuppressWarnings("null")
 class ConcurrencyTest {
 
     @Autowired
@@ -66,7 +67,7 @@ class ConcurrencyTest {
         ExecutorService executorService = Executors.newFixedThreadPool(threadCount);
         CountDownLatch latch = new CountDownLatch(threadCount);
 
-        // When - 100개 스레드에서 동시 입금
+        // when - 100개 스레드에서 동시 입금
         for (int i = 0; i < threadCount; i++) {
             executorService.submit(() -> {
                 try {
@@ -77,10 +78,12 @@ class ConcurrencyTest {
             });
         }
 
-        latch.await(30, TimeUnit.SECONDS);
+        boolean completed = latch.await(30, TimeUnit.SECONDS);
         executorService.shutdown();
 
-        // Then - 최종 잔액 = 100 * 1000 = 100,000
+        // then - 모든 스레드 완료 및 최종 잔액 = 100 * 1000 = 100,000
+        assertThat(completed).as("모든 스레드가 타임아웃 내에 완료되어야 함").isTrue();
+        
         Account result = accountJpaRepository.findById(account.getId()).orElseThrow();
         assertThat(result.getBalance()).isEqualTo(threadCount * depositAmount);
     }
@@ -109,10 +112,12 @@ class ConcurrencyTest {
             });
         }
 
-        latch.await(30, TimeUnit.SECONDS);
+        boolean completed = latch.await(30, TimeUnit.SECONDS);
         executorService.shutdown();
 
-        // then - 최종 잔액 = 200,000 - (100 * 1,000) = 100,000
+        // then - 모든 스레드 완료 및 최종 잔액 = 200,000 - (100 * 1,000) = 100,000
+        assertThat(completed).as("모든 스레드가 타임아웃 내에 완료되어야 함").isTrue();
+        
         Account result = accountJpaRepository.findById(account.getId()).orElseThrow();
         assertThat(result.getBalance()).isEqualTo(100_000L);
     }
@@ -161,10 +166,12 @@ class ConcurrencyTest {
             });
         }
 
-        latch.await(60, TimeUnit.SECONDS);
+        boolean completed = latch.await(60, TimeUnit.SECONDS);
         executorService.shutdown();
 
-        // then - 데드락 없이 완료, 총 잔액 = 200,000 - (100건 * 수수료 5원)
+        // then - 모든 스레드 완료, 데드락 없이 완료, 총 잔액 = 200,000 - (100건 * 수수료 5원)
+        assertThat(completed).as("모든 스레드가 타임아웃 내에 완료되어야 함").isTrue();
+        
         Account resultA = accountJpaRepository.findById(accountA.getId()).orElseThrow();
         Account resultB = accountJpaRepository.findById(accountB.getId()).orElseThrow();
 
