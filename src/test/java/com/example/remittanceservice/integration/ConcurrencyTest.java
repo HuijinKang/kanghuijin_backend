@@ -123,7 +123,7 @@ class ConcurrencyTest {
     }
 
     @Test
-    @DisplayName("동시성: A↔B 왕복 이체 -> 데드락 없이 완료, 수수료만 차감")
+    @DisplayName("동시성: A <-> B 왕복 이체 -> 데드락 없이 완료, 수수료만 차감")
     void concurrent_bidirectional_transfer_avoids_deadlock() throws Exception {
         // given - 두 계좌 각각 100,000원
         Account accountA = accountJpaRepository.save(Account.create("100000000003", "A"));
