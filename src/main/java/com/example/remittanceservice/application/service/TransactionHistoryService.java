@@ -1,6 +1,6 @@
 package com.example.remittanceservice.application.service;
 
-import com.example.remittanceservice.application.dto.HistoryPage;
+import com.example.remittanceservice.application.dto.TransactionHistoryPage;
 import com.example.remittanceservice.common.error.ErrorCode;
 import com.example.remittanceservice.common.exception.CoreException;
 import com.example.remittanceservice.domain.transaction.TransactionRepository;
@@ -13,7 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
-public class HistoryService {
+public class TransactionHistoryService {
 
     private static final int DEFAULT_HAS_MORE_PROBE = 1;
     private static final int DEFAULT_LIMIT = 50;
@@ -22,26 +22,31 @@ public class HistoryService {
     private final TransactionRepository transactionRepository;
 
     @Transactional(readOnly = true)
-    public HistoryPage getDepositPage(long accountId, Long cursorExclusive, int limit) {
+    public TransactionHistoryPage getDepositPage(long accountId, Long cursorExclusive, int limit) {
         return getTransactionPageByType(accountId, TransactionType.DEPOSIT, cursorExclusive, limit);
     }
 
     @Transactional(readOnly = true)
-    public HistoryPage getWithdrawPage(long accountId, Long cursorExclusive, int limit) {
+    public TransactionHistoryPage getWithdrawPage(long accountId, Long cursorExclusive, int limit) {
         return getTransactionPageByType(accountId, TransactionType.WITHDRAW, cursorExclusive, limit);
     }
 
     @Transactional(readOnly = true)
-    public HistoryPage getSentTransferPage(long accountId, Long cursorExclusive, int limit) {
+    public TransactionHistoryPage getSentTransferPage(long accountId, Long cursorExclusive, int limit) {
         return getTransactionPageByType(accountId, TransactionType.TRANSFER_OUT, cursorExclusive, limit);
     }
 
     @Transactional(readOnly = true)
-    public HistoryPage getReceivedTransferPage(long accountId, Long cursorExclusive, int limit) {
+    public TransactionHistoryPage getReceivedTransferPage(long accountId, Long cursorExclusive, int limit) {
         return getTransactionPageByType(accountId, TransactionType.TRANSFER_IN, cursorExclusive, limit);
     }
 
-    private HistoryPage getTransactionPageByType(long accountId, TransactionType type, Long cursorExclusive, int limit) {
+    private TransactionHistoryPage getTransactionPageByType(
+            long accountId,
+            TransactionType type,
+            Long cursorExclusive,
+            int limit
+    ) {
         int resolvedLimit = resolveLimit(limit);
         validateCursor(cursorExclusive);
 
@@ -56,7 +61,7 @@ public class HistoryService {
         return buildPage(fetched, resolvedLimit);
     }
 
-    private HistoryPage buildPage(List<Transaction> fetched, int resolvedLimit) {
+    private TransactionHistoryPage buildPage(List<Transaction> fetched, int resolvedLimit) {
         boolean hasMore = fetched.size() > resolvedLimit;
         List<Transaction> page = hasMore ? fetched.subList(0, resolvedLimit) : fetched;
 
@@ -66,7 +71,7 @@ public class HistoryService {
             nextCursor = last.getId();
         }
 
-        return new HistoryPage(page, nextCursor);
+        return new TransactionHistoryPage(page, nextCursor);
     }
 
     private int resolveLimit(int limit) {

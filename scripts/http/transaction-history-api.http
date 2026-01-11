@@ -4,8 +4,8 @@
 GET {{host}}/api/v1/accounts/{{accountId}}/deposits?limit=10
 
 > {%
-  if (response.body.nextCursor) {
-    client.global.set("depositCursor", response.body.nextCursor);
+  if (response.body.data && response.body.data.nextCursor) {
+    client.global.set("depositCursor", response.body.data.nextCursor);
   }
 %}
 

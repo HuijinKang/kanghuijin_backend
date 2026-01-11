@@ -1,10 +1,10 @@
 @host = http://localhost:8080
 
 ### 정책 조회 (200)
-GET {{host}}/api/v1/policies/DEFAULT
+GET {{host}}/api/v1/transaction-policies/DEFAULT
 
 ### 정책 Upsert (200) - 애플리케이션 실행 시 기본 수수료/한도 정책이 생성됩니다.
-PUT {{host}}/api/v1/policies/DEFAULT
+PUT {{host}}/api/v1/transaction-policies/DEFAULT
 Content-Type: application/json
 
 {

@@ -10,29 +10,32 @@ import lombok.NoArgsConstructor;
 public final class TransactionDto {
 
     public record DepositRequest(
-            @Positive long amount
+            @Positive(message = "입금액은 양수여야 합니다")
+            long amount
     ) {
     }
 
     public record WithdrawRequest(
-            @Positive long amount
+            @Positive(message = "출금액은 양수여야 합니다")
+            long amount
     ) {
     }
 
     public record TransferRequest(
-            @NotBlank
+            @NotBlank(message = "출금 계좌번호는 필수입니다")
             @Pattern(
                     regexp = "^\\d{10,14}$",
-                    message = "계좌번호는 숫자만 10~14자리로 입력해주세요."
+                    message = "계좌번호는 숫자만 10~14자리로 입력해주세요"
             )
             String fromAccountNumber,
-            @NotBlank
+            @NotBlank(message = "입금 계좌번호는 필수입니다")
             @Pattern(
                     regexp = "^\\d{10,14}$",
-                    message = "계좌번호는 숫자만 10~14자리로 입력해주세요."
+                    message = "계좌번호는 숫자만 10~14자리로 입력해주세요"
             )
             String toAccountNumber,
-            @Positive long amount
+            @Positive(message = "이체 금액은 양수여야 합니다")
+            long amount
     ) {
     }
 }

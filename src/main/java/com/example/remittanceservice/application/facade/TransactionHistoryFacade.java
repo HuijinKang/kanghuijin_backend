@@ -1,14 +1,14 @@
 package com.example.remittanceservice.application.facade;
 
 import com.example.remittanceservice.application.service.AccountService;
-import com.example.remittanceservice.application.dto.HistoryPage;
-import com.example.remittanceservice.application.service.HistoryService;
-import com.example.remittanceservice.presentation.dto.HistoryDto.DepositHistoryItem;
-import com.example.remittanceservice.presentation.dto.HistoryDto.DepositHistoryResponse;
-import com.example.remittanceservice.presentation.dto.HistoryDto.WithdrawHistoryItem;
-import com.example.remittanceservice.presentation.dto.HistoryDto.WithdrawHistoryResponse;
-import com.example.remittanceservice.presentation.dto.HistoryDto.TransferHistoryItem;
-import com.example.remittanceservice.presentation.dto.HistoryDto.TransferHistoryResponse;
+import com.example.remittanceservice.application.dto.TransactionHistoryPage;
+import com.example.remittanceservice.application.service.TransactionHistoryService;
+import com.example.remittanceservice.presentation.dto.TransactionHistoryDto.DepositHistoryItem;
+import com.example.remittanceservice.presentation.dto.TransactionHistoryDto.DepositHistoryResponse;
+import com.example.remittanceservice.presentation.dto.TransactionHistoryDto.WithdrawHistoryItem;
+import com.example.remittanceservice.presentation.dto.TransactionHistoryDto.WithdrawHistoryResponse;
+import com.example.remittanceservice.presentation.dto.TransactionHistoryDto.TransferHistoryItem;
+import com.example.remittanceservice.presentation.dto.TransactionHistoryDto.TransferHistoryResponse;
 import java.time.Instant;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -16,15 +16,15 @@ import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-public class HistoryFacade {
+public class TransactionHistoryFacade {
 
-    private final HistoryService historyService;
+    private final TransactionHistoryService transactionHistoryService;
     private final AccountService accountService;
 
     public DepositHistoryResponse getDeposits(long accountId, Long cursorExclusive, int limit) {
         accountService.validateAccountExists(accountId);
 
-        HistoryPage page = historyService.getDepositPage(accountId, cursorExclusive, limit);
+        TransactionHistoryPage page = transactionHistoryService.getDepositPage(accountId, cursorExclusive, limit);
 
         List<DepositHistoryItem> items = page.transactions().stream()
                 .map(transaction -> {
@@ -39,7 +39,7 @@ public class HistoryFacade {
     public WithdrawHistoryResponse getWithdrawals(long accountId, Long cursorExclusive, int limit) {
         accountService.validateAccountExists(accountId);
 
-        HistoryPage page = historyService.getWithdrawPage(accountId, cursorExclusive, limit);
+        TransactionHistoryPage page = transactionHistoryService.getWithdrawPage(accountId, cursorExclusive, limit);
 
         List<WithdrawHistoryItem> items = page.transactions().stream()
                 .map(transaction -> {
@@ -54,7 +54,7 @@ public class HistoryFacade {
     public TransferHistoryResponse getSentTransfers(long accountId, Long cursorExclusive, int limit) {
         accountService.validateAccountExists(accountId);
 
-        HistoryPage page = historyService.getSentTransferPage(accountId, cursorExclusive, limit);
+        TransactionHistoryPage page = transactionHistoryService.getSentTransferPage(accountId, cursorExclusive, limit);
 
         List<TransferHistoryItem> items = page.transactions().stream()
                 .map(transaction -> {
@@ -75,7 +75,7 @@ public class HistoryFacade {
     public TransferHistoryResponse getReceivedTransfers(long accountId, Long cursorExclusive, int limit) {
         accountService.validateAccountExists(accountId);
 
-        HistoryPage page = historyService.getReceivedTransferPage(accountId, cursorExclusive, limit);
+        TransactionHistoryPage page = transactionHistoryService.getReceivedTransferPage(accountId, cursorExclusive, limit);
 
         List<TransferHistoryItem> items = page.transactions().stream()
                 .map(transaction -> {

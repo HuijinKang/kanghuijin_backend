@@ -1,13 +1,13 @@
 package com.example.remittanceservice.presentation.dto;
 
-import com.example.remittanceservice.domain.policy.PolicyType;
+import com.example.remittanceservice.domain.transactionpolicy.TransactionPolicyType;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Positive;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-public final class PolicyDto {
+public final class TransactionPolicyDto {
 
     public record UpsertPolicyRequest(
             @Positive long withdrawDailyLimit,
@@ -17,13 +17,13 @@ public final class PolicyDto {
     }
 
     public record PolicyResponse(
-            PolicyType policyType,
+            TransactionPolicyType policyType,
             long withdrawDailyLimit,
             long transferDailyLimit,
             int transferFeeBps
     ) {
         public static PolicyResponse of(
-                PolicyType policyType,
+                TransactionPolicyType policyType,
                 long withdrawDailyLimit,
                 long transferDailyLimit,
                 int transferFeeBps

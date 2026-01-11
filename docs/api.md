@@ -1,234 +1,128 @@
 # API 명세
 
-## 공통
-- **Base URL**: `/api/v1`
-- **Content-Type**: `application/json`
-- **계좌번호 규칙**: 숫자만 10~14자리 (`^\d{10,14}$`)
 
-## 에러 응답 포맷
-에러 발생 시 아래 포맷으로 응답합니다.
+## Swagger UI
+
+- [http://localhost:8080/swagger-ui/index.html](http://localhost:8080/swagger-ui/index.html)
+
+## 공통 사항
+
+- **Base URL**: `/api`
+- **Content-Type**: `application/json`
+- **계좌번호**: 숫자 10~14자리
+
+### 응답 형식
+
+모든 API는 다음 형식으로 응답합니다:
 
 ```json
 {
-  "code": "DUPLICATE_ACCOUNT",
-  "message": "이미 존재하는 계좌입니다.",
-  "timestamp": "2026-01-01T00:00:00Z",
-  "details": null
+  "success": true/false,
+  "data": {...} or null,
+  "message": "메시지" or null,
+  "timestamp": "2026-01-01T09:00:00"
 }
 ```
+
+---
 
 ## 계좌 API
 
-### 1) 계좌 생성
-- **POST** `/api/v1/accounts`
+### 계좌 생성
+- **POST** `/v1/accounts`
+- **Request**: `accountNumber` (숫자 10~14자리), `ownerName` (2~50자)
+- **Response (201)**: `accountId`, `accountNumber`, `ownerName`
+- **Error**: 400 (검증 실패), 409 (계좌번호 중복)
 
-#### Request Body
-```json
-{
-  "accountNumber": "123456789012",
-  "ownerName": "홍길동"
-}
-```
+### 계좌 조회
+- **GET** `/v1/accounts/{accountId}`
+- **Response (200)**: `accountId`, `accountNumber`, `ownerName`, `balance`, `status`
+- **Error**: 404 (계좌 없음)
 
-#### Response (201 Created)
-```json
-{
-  "accountId": 1,
-  "accountNumber": "123456789012",
-  "ownerName": "홍길동"
-}
-```
+### 계좌 삭제
+- **DELETE** `/v1/accounts/{accountId}`
+- **Response (200)**: 성공 메시지
+- **Error**: 404 (계좌 없음)
+- **동작**: 소프트 삭제 (상태 `CLOSED`, `deletedAt` 기록)
 
-#### Error Responses
-- **400 Bad Request**: 요청 값 검증 실패(예: 계좌번호 형식 오류, 빈 값)
-- **409 Conflict**: `accountNumber` 중복 (`DUPLICATE_ACCOUNT`)
+---
 
-### 2) 계좌 상세 조회
-- **GET** `/api/v1/accounts/{accountId}`
+## 거래 API
 
-#### Response (200 OK)
-```json
-{
-  "accountId": 1,
-  "accountNumber": "123456789012",
-  "ownerName": "홍길동",
-  "balance": 50000,
-  "status": "ACTIVE"
-}
-```
+### 입금
+- **POST** `/v1/accounts/{accountId}/deposits`
+- **Request**: `amount` (양수)
+- **Response (200)**: 성공 메시지
+- **Error**: 400 (검증 실패, 계좌 폐쇄), 404 (계좌 없음)
 
-#### Error Responses
-- **404 Not Found**: 존재하지 않는 계좌 (`NOT_FOUND`)
+### 출금
+- **POST** `/v1/accounts/{accountId}/withdrawals`
+- **Request**: `amount` (양수)
+- **Response (200)**: 성공 메시지
+- **정책**: 일 한도 1,000,000원
+- **Error**: 400 (검증 실패, 잔액 부족, 한도 초과, 계좌 폐쇄), 404 (계좌 없음)
 
-### 3) 계좌 삭제(해지)
-- **DELETE** `/api/v1/accounts/{accountId}`
+### 이체
+- **POST** `/v1/transfers`
+- **Request**: `fromAccountNumber`, `toAccountNumber`, `amount` (양수)
+- **Response (200)**: 성공 메시지
+- **정책**: 수수료 1%, 일 한도 3,000,000원
+- **Error**: 400 (검증 실패, 잔액 부족, 한도 초과, 계좌 폐쇄), 404 (계좌 없음)
 
-#### Response
-- **204 No Content**
-
-#### 동작 정책
-- **소프트 삭제(해지)**: 계좌는 물리 삭제하지 않고 상태를 `CLOSED`로 변경하고 `deletedAt`을 기록합니다.
-
-#### Error Responses
-- **404 Not Found**: 존재하지 않는 `accountId` (`NOT_FOUND`)
-
-## 입금/출금/이체 API
-
-### 1) 입금
-- **POST** `/api/v1/accounts/{accountId}/deposits`
-
-#### Request Body
-```json
-{
-  "amount": 2000
-}
-```
-
-#### Response
-- **204 No Content**
-
-### 2) 출금
-- **POST** `/api/v1/accounts/{accountId}/withdrawals`
-
-#### 정책
-- **일 한도**: DB의 `policy_configs.withdraw_daily_limit` 값 (기본값: 1,000,000)
-- **집계 기준**: UTC 날짜(00:00:00 ~ 23:59:59 UTC)
-
-#### Request Body
-```json
-{
-  "amount": 500
-}
-```
-
-#### Response
-- **204 No Content**
-
-#### Error Responses
-- **400 Bad Request**: 일 한도 초과 (`DAILY_LIMIT_EXCEEDED`), 잔액 부족 (`INSUFFICIENT_BALANCE`), 해지 계좌 (`ACCOUNT_CLOSED`)
-
-### 3) 이체
-- **POST** `/api/v1/transfers`
-
-#### 정책
-- **수수료**: DB의 `policy_configs.transfer_fee_bps` (기본값: 100 bps = 1.00%)
-- **일 한도**: DB의 `policy_configs.transfer_daily_limit` 값 (기본값: 3,000,000)
-- **집계 기준**: UTC 날짜(00:00:00 ~ 23:59:59 UTC)
-
-#### Request Body
-```json
-{
-  "fromAccountNumber": "123456789012",
-  "toAccountNumber": "999999999999",
-  "amount": 1000
-}
-```
-
-#### Response
-- **204 No Content**
-
-#### Error Responses
-- **400 Bad Request**: 일 한도 초과 (`DAILY_LIMIT_EXCEEDED`), 잔액 부족 (`INSUFFICIENT_BALANCE`), 해지 계좌 (`ACCOUNT_CLOSED`)
-- **404 Not Found**: 계좌를 찾을 수 없음 (`NOT_FOUND`)
+---
 
 ## 거래내역 조회 API
 
-### 입금 내역 조회
-- **GET** `/api/v1/accounts/{accountId}/deposits`
+### 공통 사항
+- **Pagination**: Cursor 기반 (최신순)
+- **Query**: `cursor` (optional, 이전 페이지 마지막 transactionId), `limit` (optional, 기본 50, 최대 200)
+- **Response**: `items` (거래 목록), `nextCursor` (다음 페이지 커서, 없으면 null)
 
-#### Query params
-- `cursor` (optional): 이전 페이지 마지막 `transactionId` (없으면 첫 페이지)
-- `limit` (optional): 기본 50, 최대 200
+### 입금 내역
+- **GET** `/v1/accounts/{accountId}/deposits`
+- **Response**: `transactionId`, `amount`, `createdAt`
 
-#### Response (200 OK)
-```json
-{
-  "items": [
-    {
-      "transactionId": 12,
-      "amount": 10000,
-      "createdAt": "2026-01-01T00:00:00Z"
-    }
-  ],
-  "nextCursor": 11
-}
-```
+### 출금 내역
+- **GET** `/v1/accounts/{accountId}/withdrawals`
+- **Response**: `transactionId`, `amount`, `createdAt`
 
-### 출금 내역 조회
-- **GET** `/api/v1/accounts/{accountId}/withdrawals`
+### 보낸 이체 내역
+- **GET** `/v1/accounts/{accountId}/sent-transfers`
+- **Response**: `transactionId`, `amount`, `fee`, `counterpartyAccountNumber`, `createdAt`
 
-#### Query params
-- `cursor` (optional): 이전 페이지 마지막 `transactionId`
-- `limit` (optional): 기본 50, 최대 200
+### 받은 이체 내역
+- **GET** `/v1/accounts/{accountId}/received-transfers`
+- **Response**: `transactionId`, `amount`, `counterpartyAccountNumber`, `createdAt`
 
-#### Response (200 OK)
-```json
-{
-  "items": [
-    {
-      "transactionId": 10,
-      "amount": 5000,
-      "createdAt": "2026-01-01T01:00:00Z"
-    }
-  ],
-  "nextCursor": null
-}
-```
+---
 
-### 보낸 이체 내역 조회
-- **GET** `/api/v1/accounts/{accountId}/sent-transfers`
+## 거래 정책 관리 API
 
-#### Query params
-- `cursor` (optional): 이전 페이지 마지막 `transactionId`
-- `limit` (optional): 기본 50, 최대 200
-
-#### Response (200 OK)
-```json
-{
-  "items": [
-    {
-      "transactionId": 15,
-      "amount": 20000,
-      "fee": 200,
-      "counterpartyAccountNumber": "999999999999",
-      "createdAt": "2026-01-01T02:00:00Z"
-    }
-  ],
-  "nextCursor": 14
-}
-```
-
-### 받은 이체 내역 조회
-- **GET** `/api/v1/accounts/{accountId}/received-transfers`
-
-#### Query params
-- `cursor` (optional): 이전 페이지 마지막 `transactionId`
-- `limit` (optional): 기본 50, 최대 200
-
-#### Response (200 OK)
-```json
-{
-  "items": [
-    {
-      "transactionId": 16,
-      "amount": 30000,
-      "fee": 0,
-      "counterpartyAccountNumber": "111111111111",
-      "createdAt": "2026-01-01T03:00:00Z"
-    }
-  ],
-  "nextCursor": null
-}
-```
-
-## 정책(한도/수수료) 관리 API (선택)
-
-> 정책 API는 **필수 요구사항이 아닌 옵션 기능**입니다.  
-> **기본 정책(DEFAULT)은 애플리케이션 시작 시 `data.sql`로 자동 생성/업데이트**되므로, 정책 API를 호출하지 않아도 입금/출금/이체 기능을 실행할 수 있습니다.
+> 선택 기능. 기본 정책(DEFAULT)은 애플리케이션 시작 시 자동 생성됩니다.
 
 ### 정책 조회
-- **GET** `/api/v1/policies/{policyType}`
+- **GET** `/v1/transaction-policies/{policyType}`
+- **Response (200)**: `policyType`, `withdrawDailyLimit`, `transferDailyLimit`, `transferFeeBps`
+- **필드 설명**:
+  - `withdrawDailyLimit`: 출금 일 한도 (원)
+  - `transferDailyLimit`: 이체 일 한도 (원)
+  - `transferFeeBps`: 이체 수수료 (BPS 단위, 100 = 1%)
 
-### 정책 Upsert
-- **PUT** `/api/v1/policies/{policyType}`
+### 정책 수정
+- **PUT** `/v1/transaction-policies/{policyType}`
+- **Request**: `withdrawDailyLimit` (양수), `transferDailyLimit` (양수), `transferFeeBps` (양수, 최대 10000)
+- **Response (200)**: 수정된 정책 정보
+- **Error**: 400 (검증 실패)
 
+---
+
+## HTTP 상태 코드
+
+| 코드 | 설명 |
+|-----|------|
+| 200 | 성공 |
+| 201 | 생성 성공 |
+| 400 | 입력값 검증 실패, 비즈니스 규칙 위반 |
+| 404 | 리소스 없음 |
+| 409 | 중복 (계좌번호) |
+| 500 | 서버 오류 |

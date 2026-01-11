@@ -16,7 +16,7 @@ Content-Type: application/json
   "amount": 500
 }
 
-### 이체 (수수료 적용) (204)
+### 이체 (홍길동 -> 김철수) (수수료 적용) (204)
 POST {{host}}/api/v1/transfers
 Content-Type: application/json
 
@@ -24,6 +24,16 @@ Content-Type: application/json
   "fromAccountNumber": "123456789012",
   "toAccountNumber": "999999999999",
   "amount": 10000
+}
+
+### 이체 (김철수 -> 홍길동) (수수료 적용) (204)
+POST {{host}}/api/v1/transfers
+Content-Type: application/json
+
+{
+  "fromAccountNumber": "999999999999",
+  "toAccountNumber": "123456789012",
+  "amount": 5000
 }
 
 ### 출금 한도 초과 (400)
