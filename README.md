@@ -48,9 +48,10 @@ docker compose up --build
 
 ## 문서
 
-- **API 명세 문서**: [docs/api.md](docs/api.md)
+- **API 명세**: [docs/api.md](docs/api.md)
+- **시스템 플로우 차트**: [docs/flow.md](docs/flow.md)
+- **테스트 가이드**: [docs/test.md](docs/test.md)
 - **Swagger UI**: [http://localhost:8080/swagger-ui/index.html](http://localhost:8080/swagger-ui/index.html)
-- **테스트**: [docs/test.md](docs/test.md)
 
 ---
 
