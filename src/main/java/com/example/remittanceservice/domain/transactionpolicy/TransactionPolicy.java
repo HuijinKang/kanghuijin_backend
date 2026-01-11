@@ -1,4 +1,4 @@
-package com.example.remittanceservice.domain.policy;
+package com.example.remittanceservice.domain.transactionpolicy;
 
 import com.example.remittanceservice.domain.common.BaseEntity;
 import jakarta.persistence.Column;
@@ -11,14 +11,14 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "policy_configs")
+@Table(name = "transaction_policies")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class PolicyConfig extends BaseEntity {
+public class TransactionPolicy extends BaseEntity {
 
     @Column(name = "policy_type", nullable = false, unique = true, length = 50)
     @Enumerated(EnumType.STRING)
-    private PolicyType policyType;
+    private TransactionPolicyType policyType;
 
     @Column(name = "withdraw_daily_limit", nullable = false)
     private long withdrawDailyLimit;
@@ -29,8 +29,8 @@ public class PolicyConfig extends BaseEntity {
     @Column(name = "transfer_fee_bps", nullable = false)
     private int transferFeeBps;
 
-    private PolicyConfig(
-            PolicyType policyType,
+    private TransactionPolicy(
+            TransactionPolicyType policyType,
             long withdrawDailyLimit,
             long transferDailyLimit,
             int transferFeeBps
@@ -41,13 +41,13 @@ public class PolicyConfig extends BaseEntity {
         this.transferFeeBps = transferFeeBps;
     }
 
-    public static PolicyConfig of(
-            PolicyType policyType,
+    public static TransactionPolicy of(
+            TransactionPolicyType policyType,
             long withdrawDailyLimit,
             long transferDailyLimit,
             int transferFeeBps
     ) {
-        return new PolicyConfig(policyType, withdrawDailyLimit, transferDailyLimit, transferFeeBps);
+        return new TransactionPolicy(policyType, withdrawDailyLimit, transferDailyLimit, transferFeeBps);
     }
 
     public void update(long withdrawDailyLimit, long transferDailyLimit, int transferFeeBps) {

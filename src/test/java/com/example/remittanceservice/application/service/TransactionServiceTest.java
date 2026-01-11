@@ -1,26 +1,19 @@
 package com.example.remittanceservice.application.service;
 
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.example.remittanceservice.application.command.DepositCommand;
-import com.example.remittanceservice.application.command.TransferCommand;
-import com.example.remittanceservice.application.command.WithdrawCommand;
-import com.example.remittanceservice.domain.account.AccountRepository;
-import com.example.remittanceservice.domain.transaction.TransactionRepository;
-import com.example.remittanceservice.common.error.ErrorCode;
-import com.example.remittanceservice.common.exception.CoreException;
 import com.example.remittanceservice.domain.account.Account;
 import com.example.remittanceservice.domain.transaction.Transaction;
+import com.example.remittanceservice.domain.transaction.TransactionRepository;
 import com.example.remittanceservice.domain.transaction.TransactionStatus;
 import com.example.remittanceservice.domain.transaction.TransactionType;
+import com.example.remittanceservice.fixture.AccountFixtures;
 import java.time.ZonedDateTime;
-import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -32,76 +25,71 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class TransactionServiceTest {
 
     @Mock
-    AccountRepository accountRepository;
-
-    @Mock
     TransactionRepository transactionRepository;
 
     @InjectMocks
     TransactionService transactionService;
 
     @Test
-    @DisplayName("입금: 성공 시 저장이 호출된다")
-    void deposit_success_savesTransaction() {
-        Account account = mock(Account.class);
-        when(accountRepository.findByIdForUpdate(1L)).thenReturn(Optional.of(account));
+    @DisplayName("입금 거래 기록: 저장이 호출된다")
+    void recordDeposit_savesTransaction() {
+        Account account = AccountFixtures.createAccount("111111111111", "테스트");
 
-        transactionService.deposit(DepositCommand.of(1L, 500L));
+        transactionService.recordDeposit(account, 500L);
 
         verify(transactionRepository).save(any(Transaction.class));
     }
 
     @Test
-    @DisplayName("출금: 일 한도를 초과하면 DAILY_LIMIT_EXCEEDED")
-    void withdraw_dailyLimitExceeded_throws() {
-        Account account = mock(Account.class);
-        when(account.getId()).thenReturn(1L);
-        when(accountRepository.findByIdForUpdate(1L)).thenReturn(Optional.of(account));
+    @DisplayName("출금 거래 기록: 저장이 호출된다")
+    void recordWithdraw_savesTransaction() {
+        Account account = AccountFixtures.createAccount("111111111111", "테스트");
 
+        transactionService.recordWithdraw(account, 500L);
+
+        verify(transactionRepository).save(any(Transaction.class));
+    }
+
+    @Test
+    @DisplayName("이체 거래 기록: 송금/수취 2건이 저장된다")
+    void recordTransfer_savesTwoTransactions() {
+        Account senderAccount = AccountFixtures.createAccount("111111111111", "송금인");
+        Account receiverAccount = AccountFixtures.createAccount("222222222222", "수취인");
+
+        transactionService.recordTransfer(senderAccount, receiverAccount, 1000L, 10L);
+
+        verify(transactionRepository, times(2)).save(any(Transaction.class));
+    }
+
+    @Test
+    @DisplayName("오늘 출금 총액 조회: repository 결과를 반환한다")
+    void getTodayWithdrawTotal_returnsSum() {
         when(transactionRepository.sumAmountByAccountIdAndTypeAndStatusAndCreatedAtBetween(
                 eq(1L),
                 eq(TransactionType.WITHDRAW),
                 eq(TransactionStatus.SUCCESS),
                 any(ZonedDateTime.class),
                 any(ZonedDateTime.class)
-        )).thenReturn(99L);
+        )).thenReturn(500L);
 
-        assertThatThrownBy(() -> transactionService.withdraw(WithdrawCommand.of(1L, 2L), 100L))
-                .isInstanceOf(CoreException.class)
-                .extracting("errorCode")
-                .isEqualTo(ErrorCode.DAILY_LIMIT_EXCEEDED);
+        long result = transactionService.getTodayWithdrawTotal(1L);
+
+        assertThat(result).isEqualTo(500L);
     }
 
     @Test
-    @DisplayName("이체: 수수료 포함 잔액이 부족하면 INSUFFICIENT_BALANCE")
-    void transfer_insufficientBalance_withFee_throws() {
-        Account fromAccount = mock(Account.class);
-        when(fromAccount.getId()).thenReturn(1L);
-        when(fromAccount.getAccountNumber()).thenReturn("111111111111");
-        when(fromAccount.isClosed()).thenReturn(false);
-        doThrow(new CoreException(ErrorCode.INSUFFICIENT_BALANCE)).when(fromAccount).withdraw(101L);
-
-        Account toAccount = mock(Account.class);
-        when(toAccount.isClosed()).thenReturn(false);
-
-        when(accountRepository.findByAccountNumberForUpdate("111111111111")).thenReturn(Optional.of(fromAccount));
-        when(accountRepository.findByAccountNumberForUpdate("222222222222")).thenReturn(Optional.of(toAccount));
-
+    @DisplayName("오늘 이체 총액 조회: repository 결과를 반환한다")
+    void getTodayTransferTotal_returnsSum() {
         when(transactionRepository.sumAmountByAccountIdAndTypeAndStatusAndCreatedAtBetween(
                 eq(1L),
                 eq(TransactionType.TRANSFER_OUT),
                 eq(TransactionStatus.SUCCESS),
                 any(ZonedDateTime.class),
                 any(ZonedDateTime.class)
-        )).thenReturn(0L);
+        )).thenReturn(1000L);
 
-        assertThatThrownBy(() -> transactionService.transfer(
-                TransferCommand.of("111111111111", "222222222222", 100L),
-                3_000_000L,
-                100
-        ))
-                .isInstanceOf(CoreException.class)
-                .extracting("errorCode")
-                .isEqualTo(ErrorCode.INSUFFICIENT_BALANCE);
+        long result = transactionService.getTodayTransferTotal(1L);
+
+        assertThat(result).isEqualTo(1000L);
     }
 }

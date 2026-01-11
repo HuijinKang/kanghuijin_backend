@@ -6,9 +6,8 @@ import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-public final class HistoryDto {
+public final class TransactionHistoryDto {
 
-    // 입금 내역
     public record DepositHistoryResponse(
             List<DepositHistoryItem> items,
             Long nextCursor
@@ -28,7 +27,6 @@ public final class HistoryDto {
         }
     }
 
-    // 출금 내역
     public record WithdrawHistoryResponse(
             List<WithdrawHistoryItem> items,
             Long nextCursor
@@ -48,7 +46,6 @@ public final class HistoryDto {
         }
     }
 
-    // 이체 내역 (보낸/받은 공통)
     public record TransferHistoryResponse(
             List<TransferHistoryItem> items,
             Long nextCursor

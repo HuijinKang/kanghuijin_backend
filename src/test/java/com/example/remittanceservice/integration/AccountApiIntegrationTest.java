@@ -8,6 +8,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.example.remittanceservice.TestcontainersConfiguration;
 import com.example.remittanceservice.domain.account.Account;
 import com.example.remittanceservice.domain.account.AccountStatus;
+import com.example.remittanceservice.fixture.AccountFixtures;
 import com.example.remittanceservice.infrastructure.account.AccountJpaRepository;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -36,9 +37,9 @@ class AccountApiIntegrationTest {
     AccountJpaRepository accountJpaRepository;
 
     @Test
-    @DisplayName("계좌 생성/삭제 통합 테스트: 생성 201, 중복 409, 삭제 204")
+    @DisplayName("계좌 생성/삭제 통합 테스트: 생성 201, 중복 409, 삭제 200")
     void accountCreateDeleteFlow() throws Exception {
-        String accountNumber = String.valueOf(System.nanoTime()).substring(0, 12);
+        String accountNumber = AccountFixtures.generateAccountNumber();
 
         // create (201)
         MvcResult created = mockMvc.perform(post("/api/v1/accounts")
@@ -53,7 +54,8 @@ class AccountApiIntegrationTest {
                 .andReturn();
 
         JsonNode createdJson = objectMapper.readTree(created.getResponse().getContentAsString());
-        long accountId = createdJson.get("accountId").asLong();
+        JsonNode data = createdJson.get("data");
+        long accountId = data.get("accountId").asLong();
 
         // duplicate (409)
         mockMvc.perform(post("/api/v1/accounts")
@@ -66,13 +68,13 @@ class AccountApiIntegrationTest {
                                 """.formatted(accountNumber)))
                 .andExpect(status().isConflict());
 
-        // delete (204)
+        // delete (200)
         mockMvc.perform(delete("/api/v1/accounts/{accountId}", accountId))
-                .andExpect(status().isNoContent());
+                .andExpect(status().isOk());
 
-        // delete 멱등성 체크 (204)
+        // delete 멱등성 체크 (200)
         mockMvc.perform(delete("/api/v1/accounts/{accountId}", accountId))
-                .andExpect(status().isNoContent());
+                .andExpect(status().isOk());
 
         // DB state check
         Account account = accountJpaRepository.findById(accountId).orElseThrow();

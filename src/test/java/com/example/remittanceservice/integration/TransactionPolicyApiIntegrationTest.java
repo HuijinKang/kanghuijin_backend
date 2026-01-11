@@ -21,7 +21,7 @@ import org.springframework.test.web.servlet.MvcResult;
 @Import(TestcontainersConfiguration.class)
 @SpringBootTest
 @AutoConfigureMockMvc
-class PolicyApiIntegrationTest {
+class TransactionPolicyApiIntegrationTest {
 
     @Autowired
     MockMvc mockMvc;
@@ -48,10 +48,10 @@ class PolicyApiIntegrationTest {
                 .andReturn();
 
         JsonNode body = objectMapper.readTree(result.getResponse().getContentAsString());
-        assertThat(body.get("policyType").asText()).isEqualTo("DEFAULT");
-        assertThat(body.get("withdrawDailyLimit").asLong()).isEqualTo(1_000_000L);
-        assertThat(body.get("transferDailyLimit").asLong()).isEqualTo(3_000_000L);
-        assertThat(body.get("transferFeeBps").asInt()).isEqualTo(100);
+        JsonNode data = body.get("data");
+        assertThat(data.get("policyType").asText()).isEqualTo("DEFAULT");
+        assertThat(data.get("withdrawDailyLimit").asLong()).isEqualTo(1_000_000L);
+        assertThat(data.get("transferDailyLimit").asLong()).isEqualTo(3_000_000L);
+        assertThat(data.get("transferFeeBps").asInt()).isEqualTo(100);
     }
 }
-

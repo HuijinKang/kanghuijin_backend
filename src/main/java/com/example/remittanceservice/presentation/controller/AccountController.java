@@ -7,6 +7,7 @@ import com.example.remittanceservice.application.facade.AccountFacade;
 import com.example.remittanceservice.presentation.dto.AccountDto.AccountDetailResponse;
 import com.example.remittanceservice.presentation.dto.AccountDto.CreateAccountRequest;
 import com.example.remittanceservice.presentation.dto.AccountDto.CreateAccountResponse;
+import com.example.remittanceservice.presentation.dto.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -31,42 +32,43 @@ public class AccountController {
 
     @PostMapping("/v1/accounts")
     @Operation(summary = "계좌 생성", description = "새 계좌를 생성합니다.")
-    public ResponseEntity<CreateAccountResponse> createAccount(
+    public ResponseEntity<ApiResponse<CreateAccountResponse>> createAccount(
             @Valid @RequestBody CreateAccountRequest request
     ) {
         CreateAccountResult created = accountFacade.createAccount(
                 CreateAccountCommand.of(request.accountNumber(), request.ownerName())
         );
 
+        CreateAccountResponse response = CreateAccountResponse.of(
+                created.accountId(),
+                created.accountNumber(),
+                created.ownerName()
+        );
+
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(CreateAccountResponse.of(
-                        created.accountId(),
-                        created.accountNumber(),
-                        created.ownerName()
-                ));
+                .body(ApiResponse.success(response));
     }
 
     @GetMapping("/v1/accounts/{accountId}")
     @Operation(summary = "계좌 상세 조회", description = "계좌의 상세 정보를 조회합니다.")
-    public ResponseEntity<AccountDetailResponse> getAccount(@PathVariable long accountId) {
+    public ResponseEntity<ApiResponse<AccountDetailResponse>> getAccount(@PathVariable long accountId) {
         AccountDetailResult result = accountFacade.getAccount(accountId);
-        return ResponseEntity.ok(
-                AccountDetailResponse.of(
-                        result.accountId(),
-                        result.accountNumber(),
-                        result.ownerName(),
-                        result.balance(),
-                        result.status()
-                )
+        AccountDetailResponse response = AccountDetailResponse.of(
+                result.accountId(),
+                result.accountNumber(),
+                result.ownerName(),
+                result.balance(),
+                result.status()
         );
+        return ResponseEntity.ok(ApiResponse.success(response));
     }
 
     @DeleteMapping("/v1/accounts/{accountId}")
     @Operation(summary = "계좌 삭제", description = "계좌를 삭제합니다.")
-    public ResponseEntity<Void> deleteAccount(
+    public ResponseEntity<ApiResponse<Void>> deleteAccount(
             @PathVariable long accountId
     ) {
         accountFacade.deleteAccount(accountId);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(ApiResponse.success("계좌가 삭제되었습니다"));
     }
 }
