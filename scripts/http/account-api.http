@@ -1,6 +1,6 @@
 @host = http://localhost:8080
 
-### 계좌 생성 (201)
+### (준비) 계좌 생성 (201)
 POST {{host}}/api/v1/accounts
 Content-Type: application/json
 
@@ -13,7 +13,7 @@ Content-Type: application/json
   client.global.set("accountId", response.body.accountId);
 %}
 
-### (준비) 계좌 생성 이체 대상 계좌 (201)
+### (준비) 계좌 생성 - 이체 대상 계좌 (201)
 POST {{host}}/api/v1/accounts
 Content-Type: application/json
 

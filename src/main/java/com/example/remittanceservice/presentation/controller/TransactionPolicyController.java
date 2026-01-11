@@ -30,11 +30,8 @@ public class TransactionPolicyController {
 
     private final TransactionPolicyService transactionPolicyService;
 
-    @GetMapping("/v1/policies/{policyType}")
-    @Operation(
-            summary = "정책 조회(옵션)",
-            description = "policyType(enum)으로 정책을 조회합니다."
-    )
+    @GetMapping("/v1/transaction-policies/{policyType}")
+    @Operation(summary = "정책 조회", description = "policyType(enum)으로 정책을 조회합니다.")
     public ResponseEntity<ApiResponse<PolicyResponse>> getPolicy(
             @PathVariable TransactionPolicyType policyType
     ) {
@@ -48,11 +45,8 @@ public class TransactionPolicyController {
                 )));
     }
 
-    @PutMapping("/v1/policies/{policyType}")
-    @Operation(
-            summary = "정책 Upsert(옵션)",
-            description = "policyType(enum)으로 정책을 생성/수정합니다(Upsert)."
-    )
+    @PutMapping("/v1/transaction-policies/{policyType}")
+    @Operation(summary = "정책 Upsert", description = "policyType(enum)으로 정책을 생성/수정합니다(Upsert).")
     public ResponseEntity<ApiResponse<PolicyResponse>> updatePolicy(
             @PathVariable TransactionPolicyType policyType,
             @Valid @RequestBody UpsertPolicyRequest request

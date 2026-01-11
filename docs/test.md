@@ -83,13 +83,13 @@ public void deposit(DepositCommand command) { }
 IntelliJ HTTP Client로 API를 빠르게 테스트할 수 있습니다.
 
 ### 계좌 API
-`scripts/http/account-api.http`
+- `scripts/http/account-api.http`
 
 ### 거래 API
-`scripts/http/transaction-api.http`
+- `scripts/http/transaction-api.http`
 
 ### 거래 내역 API
-`scripts/http/history-api.http`
+- `scripts/http/transaction-history-api.http`
 
 ### 수수료/한도 정책 API
-`scripts/http/policy-api.http`
+- `scripts/http/transaction-policy-api.http`

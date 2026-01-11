@@ -100,7 +100,7 @@ public class TransactionFacade {
                     ? transferCommand.toAccountNumber()
                     : transferCommand.fromAccountNumber();
 
-            // 3. 계좌 락 획득 (PESSIMISTIC_WRITE): 작은 번호 → 큰 번호 순서로 락
+            // 3. 계좌 락 획득 (PESSIMISTIC_WRITE): 작은 번호 -> 큰 번호 순서로 락
             Account accountWithSmallerNumber = accountService.findByAccountNumberForUpdate(smallerAccountNumber);
             Account accountWithLargerNumber = accountService.findByAccountNumberForUpdate(largerAccountNumber);
 

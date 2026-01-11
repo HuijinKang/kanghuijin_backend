@@ -12,11 +12,11 @@
 ## 아키텍처(레이어 구조)
 
 ```
-presentation  (Controller, DTO)
+presentation   (Controller, DTO)
      ↓
-application   (Facade, Service, Command)
+application    (Facade, Service, Command)
      ↓
-domain        (Entity, Repository Interface)
+domain         (Entity, Repository Interface)
      ↓
 infrastructure (JPA Repository Implementation)
 ```
@@ -57,7 +57,7 @@ docker compose up --build
 ## 기술 스택
 
 - **Language**: Java 17
-- **Framework**: Spring Boot 3.x
+- **Framework**: Spring Boot 3.5.9
 - **Database**: MySQL 8.0
 - **ORM**: JPA (Hibernate)
 - **Build Tool**: Gradle
