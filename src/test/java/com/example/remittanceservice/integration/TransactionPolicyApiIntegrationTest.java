@@ -30,9 +30,9 @@ class TransactionPolicyApiIntegrationTest {
     ObjectMapper objectMapper;
 
     @Test
-    @DisplayName("정책 Upsert API: PUT 후 GET(/policies/{policyType})으로 조회 가능")
+    @DisplayName("정책 Upsert API: PUT 후 GET(/transaction-policies/{policyType})으로 조회 가능")
     void upsertPolicy_thenGet() throws Exception {
-        mockMvc.perform(put("/api/v1/policies/DEFAULT")
+        mockMvc.perform(put("/api/v1/transaction-policies/DEFAULT")
                         .contentType(MediaType.APPLICATION_JSON_VALUE)
                         .content("""
                                 {
@@ -43,7 +43,7 @@ class TransactionPolicyApiIntegrationTest {
                                 """))
                 .andExpect(status().isOk());
 
-        MvcResult result = mockMvc.perform(get("/api/v1/policies/DEFAULT"))
+        MvcResult result = mockMvc.perform(get("/api/v1/transaction-policies/DEFAULT"))
                 .andExpect(status().isOk())
                 .andReturn();
 
