@@ -4,13 +4,18 @@ import com.example.remittanceservice.application.command.DepositCommand;
 import com.example.remittanceservice.application.command.TransferCommand;
 import com.example.remittanceservice.application.command.WithdrawCommand;
 import com.example.remittanceservice.application.service.AccountService;
+import com.example.remittanceservice.application.service.InternalTransferHandler;
 import com.example.remittanceservice.application.service.TransactionPolicyService;
 import com.example.remittanceservice.application.service.TransactionService;
 import com.example.remittanceservice.common.error.ErrorCode;
 import com.example.remittanceservice.common.exception.CoreException;
 import com.example.remittanceservice.domain.account.Account;
+import com.example.remittanceservice.domain.transaction.Transaction;
+import com.example.remittanceservice.domain.transaction.TransactionType;
+import com.example.remittanceservice.domain.transaction.TransferRoute;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,23 +28,38 @@ public class TransactionFacade {
     private final AccountService accountService;
     private final TransactionService transactionService;
     private final TransactionPolicyService transactionPolicyService;
+    private final InternalTransferHandler internalTransferHandler;
 
     @Transactional(isolation = Isolation.SERIALIZABLE, timeout = 10)
-    public void deposit(DepositCommand command) {
+    public void deposit(DepositCommand command, String idempotencyKey) {
         log.info("[DEPOSIT_START] accountId={}, amount={}", command.accountId(), command.amount());
+        TransferRoute route = TransferRoute.INTERNAL_CORE;
         
         try {
             // 1. 계좌 조회 및 락 획득
             Account account = accountService.findByIdForUpdate(command.accountId());
+
+            // 2. 멱등성 체크
+            Transaction existing = transactionService.findByTransferRouteAndIdempotencyKey(route, idempotencyKey)
+                    .orElse(null);
+            if (existing != null) {
+                validateIdempotencyMatch(existing, TransactionType.DEPOSIT, account, command.amount(), null);
+                log.info("[DEPOSIT_IDEMPOTENT_HIT] accountId={}, idempotencyKey={}", command.accountId(), idempotencyKey);
+                return;
+            }
             
-            // 2. 입금 실행
+            // 3. 입금 실행
             accountService.deposit(account, command.amount());
             
-            // 3. 거래 기록
-            transactionService.recordDeposit(account, command.amount());
+            // 4. 거래 기록
+            transactionService.recordDeposit(account, command.amount(), route, idempotencyKey);
             
             log.info("[DEPOSIT_SUCCESS] accountId={}, amount={}, newBalance={}", 
                     command.accountId(), command.amount(), account.getBalance());
+        } catch (DataIntegrityViolationException e) {
+            log.warn("[DEPOSIT_IDEMPOTENCY_CONFLICT] accountId={}, idempotencyKey={}, error={}",
+                    command.accountId(), idempotencyKey, e.getMessage());
+            throw new CoreException(ErrorCode.IDEMPOTENCY_CONFLICT, "duplicate idempotency key");
         } catch (Exception e) {
             log.error("[DEPOSIT_FAILED] accountId={}, amount={}, error={}", 
                     command.accountId(), command.amount(), e.getMessage());
@@ -48,8 +68,9 @@ public class TransactionFacade {
     }
 
     @Transactional(isolation = Isolation.SERIALIZABLE, timeout = 10)
-    public void withdraw(WithdrawCommand command) {
+    public void withdraw(WithdrawCommand command, String idempotencyKey) {
         log.info("[WITHDRAW_START] accountId={}, amount={}", command.accountId(), command.amount());
+        TransferRoute route = TransferRoute.INTERNAL_CORE;
         
         try {
             // 1. 정책 조회
@@ -65,15 +86,28 @@ public class TransactionFacade {
             
             // 3. 계좌 조회 및 락 획득
             Account account = accountService.findByIdForUpdate(command.accountId());
+
+            // 4. 멱등성 체크
+            Transaction existing = transactionService.findByTransferRouteAndIdempotencyKey(route, idempotencyKey)
+                    .orElse(null);
+            if (existing != null) {
+                validateIdempotencyMatch(existing, TransactionType.WITHDRAW, account, command.amount(), null);
+                log.info("[WITHDRAW_IDEMPOTENT_HIT] accountId={}, idempotencyKey={}", command.accountId(), idempotencyKey);
+                return;
+            }
             
-            // 4. 출금 실행
+            // 5. 출금 실행
             accountService.withdraw(account, command.amount());
             
-            // 5. 거래 기록
-            transactionService.recordWithdraw(account, command.amount());
+            // 6. 거래 기록
+            transactionService.recordWithdraw(account, command.amount(), route, idempotencyKey);
             
             log.info("[WITHDRAW_SUCCESS] accountId={}, amount={}, newBalance={}, todayTotal={}", 
                     command.accountId(), command.amount(), account.getBalance(), todayTotal + command.amount());
+        } catch (DataIntegrityViolationException e) {
+            log.warn("[WITHDRAW_IDEMPOTENCY_CONFLICT] accountId={}, idempotencyKey={}, error={}",
+                    command.accountId(), idempotencyKey, e.getMessage());
+            throw new CoreException(ErrorCode.IDEMPOTENCY_CONFLICT, "duplicate idempotency key");
         } catch (Exception e) {
             log.error("[WITHDRAW_FAILED] accountId={}, amount={}, error={}", 
                     command.accountId(), command.amount(), e.getMessage());
@@ -82,9 +116,10 @@ public class TransactionFacade {
     }
 
     @Transactional(isolation = Isolation.SERIALIZABLE, timeout = 10)
-    public void transfer(TransferCommand transferCommand) {
+    public void transfer(TransferCommand transferCommand, String idempotencyKey) {
         log.info("[TRANSFER_START] from={}, to={}, amount={}", 
                 transferCommand.fromAccountNumber(), transferCommand.toAccountNumber(), transferCommand.amount());
+        TransferRoute route = TransferRoute.INTERNAL_CORE;
         
         try {
             // 1. 입력 검증
@@ -112,15 +147,34 @@ public class TransactionFacade {
                     ? accountWithSmallerNumber 
                     : accountWithLargerNumber;
 
-            // 5. 계좌 상태 체크
+            // 5. 멱등성 체크
+            Transaction existing = transactionService.findByTransferRouteAndIdempotencyKey(route, idempotencyKey)
+                    .orElse(null);
+            if (existing != null) {
+                validateIdempotencyMatch(
+                        existing,
+                        TransactionType.TRANSFER_OUT,
+                        senderAccount,
+                        transferCommand.amount(),
+                        transferCommand.toAccountNumber()
+                );
+                log.info("[TRANSFER_IDEMPOTENT_HIT] from={}, idempotencyKey={}",
+                        transferCommand.fromAccountNumber(), idempotencyKey);
+                return;
+            }
+
+            // 6. 실행 경로 추후 타행/해외 확장
+            internalTransferHandler.handle(transferCommand);
+
+            // 6. 계좌 상태 체크
             accountService.validateAccountActive(senderAccount);
             accountService.validateAccountActive(receiverAccount);
 
-            // 6. 정책 조회 (한도/수수료)
+            // 7. 정책 조회 (한도/수수료)
             long transferDailyLimit = transactionPolicyService.getTransferDailyLimit();
             long fee = transactionPolicyService.calculateTransferFee(transferCommand.amount());
 
-            // 7. 일 한도 체크
+            // 8. 일 한도 체크
             long todayTransferTotal = transactionService.getTodayTransferTotal(senderAccount.getId());
             if (todayTransferTotal + transferCommand.amount() > transferDailyLimit) {
                 log.warn("[TRANSFER_LIMIT_EXCEEDED] fromAccountId={}, todayTotal={}, requestAmount={}, limit={}", 
@@ -128,20 +182,48 @@ public class TransactionFacade {
                 throw new CoreException(ErrorCode.DAILY_LIMIT_EXCEEDED);
             }
 
-            // 8. 잔액 반영
+            // 9. 잔액 반영
             accountService.transferMoney(senderAccount, receiverAccount, transferCommand.amount(), fee);
 
-            // 9. 거래 기록
-            transactionService.recordTransfer(senderAccount, receiverAccount, transferCommand.amount(), fee);
+            // 10. 거래 기록
+            transactionService.recordTransfer(senderAccount, receiverAccount, transferCommand.amount(), fee, route, idempotencyKey);
             
             log.info("[TRANSFER_SUCCESS] from={}, to={}, amount={}, fee={}, fromBalance={}, toBalance={}", 
                     transferCommand.fromAccountNumber(), transferCommand.toAccountNumber(),
                     transferCommand.amount(), fee, senderAccount.getBalance(), receiverAccount.getBalance());
+        } catch (DataIntegrityViolationException e) {
+            log.warn("[TRANSFER_IDEMPOTENCY_CONFLICT] from={}, idempotencyKey={}, error={}",
+                    transferCommand.fromAccountNumber(), idempotencyKey, e.getMessage());
+            throw new CoreException(ErrorCode.IDEMPOTENCY_CONFLICT, "duplicate idempotency key");
         } catch (Exception e) {
             log.error("[TRANSFER_FAILED] from={}, to={}, amount={}, error={}", 
                     transferCommand.fromAccountNumber(), transferCommand.toAccountNumber(),
                     transferCommand.amount(), e.getMessage());
             throw e;
+        }
+    }
+
+    private static void validateIdempotencyMatch(
+            Transaction existing,
+            TransactionType expectedType,
+            Account expectedAccount,
+            long expectedAmount,
+            String expectedCounterpartyAccountNumber
+    ) {
+        if (existing.getType() != expectedType) {
+            throw new CoreException(ErrorCode.IDEMPOTENCY_CONFLICT, "idempotency key request mismatch(type)");
+        }
+        if (existing.getAccount() == null || existing.getAccount().getId() == null || !existing.getAccount().getId().equals(expectedAccount.getId())) {
+            throw new CoreException(ErrorCode.IDEMPOTENCY_CONFLICT, "idempotency key request mismatch(account)");
+        }
+        if (existing.getAmount() != expectedAmount) {
+            throw new CoreException(ErrorCode.IDEMPOTENCY_CONFLICT, "idempotency key request mismatch(amount)");
+        }
+        if (expectedCounterpartyAccountNumber != null) {
+            if (existing.getCounterpartyAccountNumber() == null
+                    || !existing.getCounterpartyAccountNumber().equals(expectedCounterpartyAccountNumber)) {
+                throw new CoreException(ErrorCode.IDEMPOTENCY_CONFLICT, "idempotency key request mismatch(counterparty)");
+            }
         }
     }
 }

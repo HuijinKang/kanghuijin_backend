@@ -58,6 +58,7 @@ class TransactionApiIntegrationTest {
 
         // deposit 2,000 to sender
         mockMvc.perform(post("/api/v1/accounts/{accountId}/deposits", senderAccount.getId())
+                        .header("X-Idempotency-Key", "dep-001")
                         .contentType(MediaType.APPLICATION_JSON_VALUE)
                         .content("""
                                 { "amount": 2000 }
@@ -66,6 +67,7 @@ class TransactionApiIntegrationTest {
 
         // withdraw 500
         mockMvc.perform(post("/api/v1/accounts/{accountId}/withdrawals", senderAccount.getId())
+                        .header("X-Idempotency-Key", "wdr-001")
                         .contentType(MediaType.APPLICATION_JSON_VALUE)
                         .content("""
                                 { "amount": 500 }
@@ -74,6 +76,7 @@ class TransactionApiIntegrationTest {
 
         // transfer 1,000 (fee 1% => 10)
         mockMvc.perform(post("/api/v1/transfers")
+                        .header("X-Idempotency-Key", "trx-001")
                         .contentType(MediaType.APPLICATION_JSON_VALUE)
                         .content("""
                                 {

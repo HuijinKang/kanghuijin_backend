@@ -63,16 +63,19 @@ class TransactionHistoryApiIntegrationTest {
 
         // 입금 3건 생성
         mockMvc.perform(post("/api/v1/accounts/{accountId}/deposits", account.getId())
+                        .header("X-Idempotency-Key", "dep-001")
                         .contentType(MediaType.APPLICATION_JSON_VALUE)
                         .content("{\"amount\":1000}"))
                 .andExpect(status().isOk());
 
         mockMvc.perform(post("/api/v1/accounts/{accountId}/deposits", account.getId())
+                        .header("X-Idempotency-Key", "dep-002")
                         .contentType(MediaType.APPLICATION_JSON_VALUE)
                         .content("{\"amount\":2000}"))
                 .andExpect(status().isOk());
 
         mockMvc.perform(post("/api/v1/accounts/{accountId}/deposits", account.getId())
+                        .header("X-Idempotency-Key", "dep-003")
                         .contentType(MediaType.APPLICATION_JSON_VALUE)
                         .content("{\"amount\":3000}"))
                 .andExpect(status().isOk());
@@ -88,7 +91,7 @@ class TransactionHistoryApiIntegrationTest {
         assertThat(data.get("nextCursor")).isNotNull();
 
         // 다음 페이지 - 나머지 1개 조회
-        long nextCursor = data.get("nextCursor").asLong();
+        String nextCursor = data.get("nextCursor").asText();
         mockMvc.perform(get("/api/v1/accounts/{accountId}/deposits?cursor={cursor}&limit=2", account.getId(), nextCursor))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.items").isArray())

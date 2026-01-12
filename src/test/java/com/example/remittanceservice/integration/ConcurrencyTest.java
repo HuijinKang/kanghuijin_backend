@@ -64,7 +64,10 @@ class ConcurrencyTest {
         for (int i = 0; i < threadCount; i++) {
             executorService.submit(() -> {
                 try {
-                    transactionFacade.deposit(DepositCommand.of(account.getId(), depositAmount));
+                    transactionFacade.deposit(
+                            DepositCommand.of(account.getId(), depositAmount),
+                            "dep-" + Thread.currentThread().getId()
+                    );
                 } finally {
                     latch.countDown();
                 }
@@ -102,11 +105,14 @@ class ConcurrencyTest {
             // 첫번째 -> 두번째
             executorService.submit(() -> {
                 try {
-                    transactionFacade.transfer(TransferCommand.of(
-                            firstAccount.getAccountNumber(),
-                            secondAccount.getAccountNumber(),
-                            transferAmount
-                    ));
+                    transactionFacade.transfer(
+                            TransferCommand.of(
+                                    firstAccount.getAccountNumber(),
+                                    secondAccount.getAccountNumber(),
+                                    transferAmount
+                            ),
+                            "trx-a-" + Thread.currentThread().getId() + "-" + System.nanoTime()
+                    );
                 } finally {
                     latch.countDown();
                 }
@@ -115,11 +121,14 @@ class ConcurrencyTest {
             // 두번째 -> 첫번째
             executorService.submit(() -> {
                 try {
-                    transactionFacade.transfer(TransferCommand.of(
-                            secondAccount.getAccountNumber(),
-                            firstAccount.getAccountNumber(),
-                            transferAmount
-                    ));
+                    transactionFacade.transfer(
+                            TransferCommand.of(
+                                    secondAccount.getAccountNumber(),
+                                    firstAccount.getAccountNumber(),
+                                    transferAmount
+                            ),
+                            "trx-b-" + Thread.currentThread().getId() + "-" + System.nanoTime()
+                    );
                 } finally {
                     latch.countDown();
                 }

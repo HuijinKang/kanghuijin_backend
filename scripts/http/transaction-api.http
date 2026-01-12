@@ -3,42 +3,47 @@
 ### 입금 (204)
 POST {{host}}/api/v1/accounts/{{accountId}}/deposits
 Content-Type: application/json
+X-Idempotency-Key: dep-001
 
 {
-  "amount": 2000
+  "amount": 10000
 }
 
 ### 출금 (204)
 POST {{host}}/api/v1/accounts/{{accountId}}/withdrawals
 Content-Type: application/json
+X-Idempotency-Key: wdr-001
 
 {
-  "amount": 500
+  "amount": 1500
 }
 
 ### 이체 (홍길동 -> 김철수) (수수료 적용) (204)
 POST {{host}}/api/v1/transfers
 Content-Type: application/json
+X-Idempotency-Key: trx-001
 
 {
-  "fromAccountNumber": "123456789012",
-  "toAccountNumber": "999999999999",
-  "amount": 10000
+  "fromAccountNumber": "{{accountNumber}}",
+  "toAccountNumber": "{{targetAccountNumber}}",
+  "amount": 2000
 }
 
 ### 이체 (김철수 -> 홍길동) (수수료 적용) (204)
 POST {{host}}/api/v1/transfers
 Content-Type: application/json
+X-Idempotency-Key: trx-002
 
 {
-  "fromAccountNumber": "999999999999",
-  "toAccountNumber": "123456789012",
-  "amount": 5000
+  "fromAccountNumber": "{{targetAccountNumber}}",
+  "toAccountNumber": "{{accountNumber}}",
+  "amount": 1000
 }
 
 ### 출금 한도 초과 (400)
 POST {{host}}/api/v1/accounts/{{accountId}}/withdrawals
 Content-Type: application/json
+X-Idempotency-Key: wdr-002
 
 {
   "amount": 1000001

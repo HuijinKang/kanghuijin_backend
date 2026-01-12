@@ -5,6 +5,7 @@ import com.example.remittanceservice.domain.account.AccountRepository;
 import com.example.remittanceservice.common.error.ErrorCode;
 import com.example.remittanceservice.common.exception.CoreException;
 import com.example.remittanceservice.domain.account.Account;
+import java.security.SecureRandom;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -17,6 +18,9 @@ import org.springframework.transaction.annotation.Transactional;
 public class AccountService {
 
     private final AccountRepository accountRepository;
+    private static final int ACCOUNT_NUMBER_LENGTH = 12;
+    private static final int ACCOUNT_NUMBER_GENERATION_MAX_ATTEMPTS = 20;
+    private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
     @Transactional(readOnly = true)
     public void validateAccountExists(long accountId) {
@@ -32,30 +36,35 @@ public class AccountService {
 
     @Transactional
     public Account create(CreateAccountCommand command) {
-        log.info("[ACCOUNT_CREATE_START] accountNumber={}, ownerName={}", 
-                command.accountNumber(), command.ownerName());
+        log.info("[ACCOUNT_CREATE_START] ownerName={}, phoneNumber={}", 
+                command.ownerName(), command.phoneNumber());
         
-        try {
-            if (accountRepository.existsByAccountNumber(command.accountNumber())) {
-                log.warn("[ACCOUNT_CREATE_DUPLICATE] accountNumber={}", command.accountNumber());
-                throw new CoreException(ErrorCode.DUPLICATE_ACCOUNT);
+        for (int attempt = 1; attempt <= ACCOUNT_NUMBER_GENERATION_MAX_ATTEMPTS; attempt++) {
+            String accountNumber = generateAccountNumber();
+            if (accountRepository.existsByAccountNumber(accountNumber)) {
+                log.warn("[ACCOUNT_NUMBER_COLLISION] attempt={}, accountNumber={}", attempt, accountNumber);
+                continue;
             }
 
-            Account account = Account.create(command.accountNumber(), command.ownerName());
-            Account saved = accountRepository.save(account);
-            
-            log.info("[ACCOUNT_CREATE_SUCCESS] accountId={}, accountNumber={}", 
-                    saved.getId(), saved.getAccountNumber());
-            return saved;
-        } catch (DataIntegrityViolationException e) {
-            log.error("[ACCOUNT_CREATE_FAILED] accountNumber={}, error={}", 
-                    command.accountNumber(), e.getMessage());
-            throw new CoreException(ErrorCode.DUPLICATE_ACCOUNT);
-        } catch (Exception e) {
-            log.error("[ACCOUNT_CREATE_FAILED] accountNumber={}, error={}", 
-                    command.accountNumber(), e.getMessage());
-            throw e;
+            try {
+                Account account = Account.create(accountNumber, command.ownerName(), command.phoneNumber());
+                Account saved = accountRepository.save(account);
+
+                log.info("[ACCOUNT_CREATE_SUCCESS] accountId={}, accountNumber={}", 
+                        saved.getId(), saved.getAccountNumber());
+                return saved;
+            } catch (DataIntegrityViolationException e) {
+                // race condition 등으로 유니크 제약에 걸리면 재시도
+                log.warn("[ACCOUNT_CREATE_RETRY_ON_CONSTRAINT] attempt={}, accountNumber={}, error={}",
+                        attempt, accountNumber, e.getMessage());
+            } catch (Exception e) {
+                log.error("[ACCOUNT_CREATE_FAILED] attempt={}, accountNumber={}, error={}",
+                        attempt, accountNumber, e.getMessage());
+                throw e;
+            }
         }
+
+        throw new CoreException(ErrorCode.INTERNAL_ERROR, "계좌번호 생성에 실패했습니다. 잠시 후 다시 시도해주세요.");
     }
 
     @Transactional
@@ -119,5 +128,13 @@ public class AccountService {
         if (account.isClosed()) {
             throw new CoreException(ErrorCode.ACCOUNT_CLOSED);
         }
+    }
+
+    private static String generateAccountNumber() {
+        StringBuilder sb = new StringBuilder(ACCOUNT_NUMBER_LENGTH);
+        for (int i = 0; i < ACCOUNT_NUMBER_LENGTH; i++) {
+            sb.append(SECURE_RANDOM.nextInt(10));
+        }
+        return sb.toString();
     }
 }

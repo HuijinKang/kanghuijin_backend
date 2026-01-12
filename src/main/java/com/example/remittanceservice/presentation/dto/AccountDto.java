@@ -10,15 +10,15 @@ import lombok.NoArgsConstructor;
 public final class AccountDto {
 
     public record CreateAccountRequest(
-            @NotBlank(message = "계좌번호는 필수입니다")
-            @Pattern(
-                    regexp = "^\\d{10,14}$",
-                    message = "계좌번호는 숫자만 10~14자리로 입력해주세요"
-            )
-            String accountNumber,
             @NotBlank(message = "소유자 이름은 필수입니다")
             @Size(min = 2, max = 50, message = "이름은 2~50자 사이여야 합니다")
-            String ownerName
+            String ownerName,
+            @NotBlank(message = "전화번호는 필수입니다")
+            @Pattern(
+                    regexp = "^\\+?\\d{10,15}$",
+                    message = "전화번호는 숫자만 10~15자리로 입력해주세요(국가번호는 + 포함 가능)"
+            )
+            String phoneNumber
     ) {
     }
 

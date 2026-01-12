@@ -1,13 +1,13 @@
 package com.example.remittanceservice.application.command;
 
 public record CreateAccountCommand(
-        String accountNumber,
-        String ownerName
+        String ownerName,
+        String phoneNumber
 ) {
     public static CreateAccountCommand of(
-            String accountNumber,
-            String ownerName
+            String ownerName,
+            String phoneNumber
     ) {
-        return new CreateAccountCommand(accountNumber, ownerName);
+        return new CreateAccountCommand(ownerName, phoneNumber);
     }
 }

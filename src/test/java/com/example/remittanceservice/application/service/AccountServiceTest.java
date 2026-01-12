@@ -1,12 +1,16 @@
 package com.example.remittanceservice.application.service;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
 import com.example.remittanceservice.application.command.CreateAccountCommand;
 import com.example.remittanceservice.domain.account.AccountRepository;
 import com.example.remittanceservice.common.error.ErrorCode;
 import com.example.remittanceservice.common.exception.CoreException;
+import com.example.remittanceservice.domain.account.Account;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -25,20 +29,16 @@ class AccountServiceTest {
     AccountService accountService;
 
     @Test
-    @DisplayName("계좌 생성: 이미 존재하는 계좌번호면 DUPLICATE_ACCOUNT")
-    void create_duplicateAccountNumber_throws() {
-        when(accountRepository.existsByAccountNumber("123456789012"))
-                .thenReturn(true);
+    @DisplayName("계좌 생성: 서버가 12자리 계좌번호를 생성한다")
+    void create_generates12DigitAccountNumber() {
+        when(accountRepository.existsByAccountNumber(anyString())).thenReturn(false);
+        when(accountRepository.save(any(Account.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        assertThatThrownBy(() -> accountService.create(
-                CreateAccountCommand.of(
-                        "123456789012",
-                        "홍길동"
-                )
-        ))
-                .isInstanceOf(CoreException.class)
-                .extracting("errorCode")
-                .isEqualTo(ErrorCode.DUPLICATE_ACCOUNT);
+        Account created = accountService.create(CreateAccountCommand.of("홍길동", "01012345678"));
+
+        assertThat(created.getAccountNumber()).hasSize(12);
+        assertThat(created.getOwnerName()).isEqualTo("홍길동");
+        assertThat(created.getPhoneNumber()).isEqualTo("01012345678");
     }
 
     @Test

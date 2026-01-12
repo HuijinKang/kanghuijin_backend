@@ -9,7 +9,8 @@
 
 - **Base URL**: `/api`
 - **Content-Type**: `application/json`
-- **계좌번호**: 숫자 10~14자리
+- **계좌번호**: 서버가 발급하는 **12자리 숫자**
+- **멱등성**: 거래 API는 `X-Idempotency-Key` 헤더를 사용해 중복 요청을 방지합니다.
 
 ### 응답 형식
 
@@ -30,9 +31,9 @@
 
 ### 계좌 생성
 - **POST** `/v1/accounts`
-- **Request**: `accountNumber` (숫자 10-14자리), `ownerName` (2-50자)
-- **Response (201)**: `accountId`, `accountNumber`, `ownerName`
-- **Error**: 400 (검증 실패), 409 (계좌번호 중복)
+- **Request**: `ownerName` (2-50자), `phoneNumber` (숫자 10-15자리, 국가번호는 + 포함 가능)
+- **Response (201)**: `accountId`, `accountNumber` (서버 발급), `ownerName`
+- **Error**: 400 (검증 실패)
 
 ### 계좌 조회
 - **GET** `/v1/accounts/{accountId}`
@@ -51,23 +52,26 @@
 
 ### 입금
 - **POST** `/v1/accounts/{accountId}/deposits`
+- **Headers**: `X-Idempotency-Key`(필수)
 - **Request**: `amount` (양수)
 - **Response (200)**: 성공 메시지
-- **Error**: 400 (검증 실패, 계좌 폐쇄), 404 (계좌 없음)
+- **Error**: 400 (검증 실패, 계좌 폐쇄), 404 (계좌 없음), 409 (멱등성 키 충돌)
 
 ### 출금
 - **POST** `/v1/accounts/{accountId}/withdrawals`
+- **Headers**: `X-Idempotency-Key`(필수)
 - **Request**: `amount` (양수)
 - **Response (200)**: 성공 메시지
 - **정책**: 일 한도 1,000,000원
-- **Error**: 400 (검증 실패, 잔액 부족, 한도 초과, 계좌 폐쇄), 404 (계좌 없음)
+- **Error**: 400 (검증 실패, 잔액 부족, 한도 초과, 계좌 폐쇄), 404 (계좌 없음), 409 (멱등성 키 충돌)
 
 ### 이체
 - **POST** `/v1/transfers`
+- **Headers**: `X-Idempotency-Key`(필수)
 - **Request**: `fromAccountNumber`, `toAccountNumber`, `amount` (양수)
 - **Response (200)**: 성공 메시지
 - **정책**: 수수료 1%, 일 한도 3,000,000원
-- **Error**: 400 (검증 실패, 잔액 부족, 한도 초과, 계좌 폐쇄), 404 (계좌 없음)
+- **Error**: 400 (검증 실패, 잔액 부족, 한도 초과, 계좌 폐쇄), 404 (계좌 없음), 409 (멱등성 키 충돌)
 
 ---
 
@@ -75,7 +79,7 @@
 
 ### 공통 사항
 - **Pagination**: Cursor 기반 (최신순)
-- **Query**: `cursor` (optional, 이전 페이지 마지막 transactionId), `limit` (optional, 기본 50, 최대 200)
+- **Query**: `cursor` (optional, 이전 페이지 마지막 `transactionId`(TRX 문자열)), `limit` (optional, 기본 50, 최대 200)
 - **Response**: `items` (거래 목록), `nextCursor` (다음 페이지 커서, 없으면 null)
 
 ### 입금 내역
