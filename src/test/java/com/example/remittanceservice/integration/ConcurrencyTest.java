@@ -7,7 +7,6 @@ import com.example.remittanceservice.application.command.DepositCommand;
 import com.example.remittanceservice.application.command.TransferCommand;
 import com.example.remittanceservice.application.facade.TransactionFacade;
 import com.example.remittanceservice.domain.account.Account;
-import com.example.remittanceservice.domain.transaction.TransactionRequestClient;
 import com.example.remittanceservice.fixture.AccountFixtures;
 import com.example.remittanceservice.fixture.DatabaseFixtures;
 import com.example.remittanceservice.infrastructure.account.AccountJpaRepository;
@@ -67,7 +66,6 @@ class ConcurrencyTest {
                 try {
                     transactionFacade.deposit(
                             DepositCommand.of(account.getId(), depositAmount),
-                            TransactionRequestClient.WIREBARLEY.name(),
                             "dep-" + Thread.currentThread().getId()
                     );
                 } finally {
@@ -113,7 +111,6 @@ class ConcurrencyTest {
                                     secondAccount.getAccountNumber(),
                                     transferAmount
                             ),
-                            TransactionRequestClient.WIREBARLEY.name(),
                             "trx-a-" + Thread.currentThread().getId() + "-" + System.nanoTime()
                     );
                 } finally {
@@ -130,7 +127,6 @@ class ConcurrencyTest {
                                     firstAccount.getAccountNumber(),
                                     transferAmount
                             ),
-                            TransactionRequestClient.WIREBARLEY.name(),
                             "trx-b-" + Thread.currentThread().getId() + "-" + System.nanoTime()
                     );
                 } finally {

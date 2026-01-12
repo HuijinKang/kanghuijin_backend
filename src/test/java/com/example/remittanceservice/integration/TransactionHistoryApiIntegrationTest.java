@@ -8,7 +8,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.example.remittanceservice.TestcontainersConfiguration;
 import com.example.remittanceservice.domain.account.Account;
-import com.example.remittanceservice.domain.transaction.TransactionRequestClient;
 import com.example.remittanceservice.fixture.AccountFixtures;
 import com.example.remittanceservice.fixture.DatabaseFixtures;
 import com.example.remittanceservice.infrastructure.account.AccountJpaRepository;
@@ -65,21 +64,18 @@ class TransactionHistoryApiIntegrationTest {
         // 입금 3건 생성
         mockMvc.perform(post("/api/v1/accounts/{accountId}/deposits", account.getId())
                         .header("X-Idempotency-Key", "dep-001")
-                        .header("X-Client", TransactionRequestClient.WIREBARLEY.name())
                         .contentType(MediaType.APPLICATION_JSON_VALUE)
                         .content("{\"amount\":1000}"))
                 .andExpect(status().isOk());
 
         mockMvc.perform(post("/api/v1/accounts/{accountId}/deposits", account.getId())
                         .header("X-Idempotency-Key", "dep-002")
-                        .header("X-Client", TransactionRequestClient.WIREBARLEY.name())
                         .contentType(MediaType.APPLICATION_JSON_VALUE)
                         .content("{\"amount\":2000}"))
                 .andExpect(status().isOk());
 
         mockMvc.perform(post("/api/v1/accounts/{accountId}/deposits", account.getId())
                         .header("X-Idempotency-Key", "dep-003")
-                        .header("X-Client", TransactionRequestClient.WIREBARLEY.name())
                         .contentType(MediaType.APPLICATION_JSON_VALUE)
                         .content("{\"amount\":3000}"))
                 .andExpect(status().isOk());

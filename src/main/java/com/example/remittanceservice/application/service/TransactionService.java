@@ -5,7 +5,7 @@ import com.example.remittanceservice.domain.transaction.TransactionRepository;
 import com.example.remittanceservice.domain.transaction.Transaction;
 import com.example.remittanceservice.domain.transaction.TransactionStatus;
 import com.example.remittanceservice.domain.transaction.TransactionType;
-import com.example.remittanceservice.domain.transaction.TransactionRequestClient;
+import com.example.remittanceservice.domain.transaction.TransferRoute;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
@@ -21,21 +21,21 @@ public class TransactionService {
     private final TransactionRepository transactionRepository;
 
     @Transactional(readOnly = true)
-    public Optional<Transaction> findByRequestClientAndIdempotencyKey(
-            TransactionRequestClient requestClient,
+    public Optional<Transaction> findByTransferRouteAndIdempotencyKey(
+            TransferRoute transferRoute,
             String idempotencyKey
     ) {
-        return transactionRepository.findByRequestClientAndIdempotencyKey(requestClient, idempotencyKey);
+        return transactionRepository.findByTransferRouteAndIdempotencyKey(transferRoute, idempotencyKey);
     }
 
     @Transactional
-    public void recordDeposit(Account account, long amount, TransactionRequestClient requestClient, String idempotencyKey) {
-        transactionRepository.save(Transaction.deposit(account, amount, requestClient, idempotencyKey));
+    public void recordDeposit(Account account, long amount, TransferRoute transferRoute, String idempotencyKey) {
+        transactionRepository.save(Transaction.deposit(account, amount, transferRoute, idempotencyKey));
     }
 
     @Transactional
-    public void recordWithdraw(Account account, long amount, TransactionRequestClient requestClient, String idempotencyKey) {
-        transactionRepository.save(Transaction.withdraw(account, amount, requestClient, idempotencyKey));
+    public void recordWithdraw(Account account, long amount, TransferRoute transferRoute, String idempotencyKey) {
+        transactionRepository.save(Transaction.withdraw(account, amount, transferRoute, idempotencyKey));
     }
 
     @Transactional
@@ -44,7 +44,7 @@ public class TransactionService {
             Account receiverAccount,
             long amount,
             long fee,
-            TransactionRequestClient requestClient,
+            TransferRoute transferRoute,
             String idempotencyKey
     ) {
         transactionRepository.save(
@@ -53,7 +53,7 @@ public class TransactionService {
                         receiverAccount.getAccountNumber(),
                         amount,
                         fee,
-                        requestClient,
+                        transferRoute,
                         idempotencyKey
                 )
         );
@@ -62,7 +62,7 @@ public class TransactionService {
                         receiverAccount,
                         senderAccount.getAccountNumber(),
                         amount,
-                        requestClient
+                        transferRoute
                 )
         );
     }

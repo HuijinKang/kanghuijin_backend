@@ -4,14 +4,15 @@ import com.example.remittanceservice.application.command.DepositCommand;
 import com.example.remittanceservice.application.command.TransferCommand;
 import com.example.remittanceservice.application.command.WithdrawCommand;
 import com.example.remittanceservice.application.service.AccountService;
+import com.example.remittanceservice.application.service.InternalTransferHandler;
 import com.example.remittanceservice.application.service.TransactionPolicyService;
 import com.example.remittanceservice.application.service.TransactionService;
 import com.example.remittanceservice.common.error.ErrorCode;
 import com.example.remittanceservice.common.exception.CoreException;
 import com.example.remittanceservice.domain.account.Account;
 import com.example.remittanceservice.domain.transaction.Transaction;
-import com.example.remittanceservice.domain.transaction.TransactionRequestClient;
 import com.example.remittanceservice.domain.transaction.TransactionType;
+import com.example.remittanceservice.domain.transaction.TransferRoute;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -27,18 +28,19 @@ public class TransactionFacade {
     private final AccountService accountService;
     private final TransactionService transactionService;
     private final TransactionPolicyService transactionPolicyService;
+    private final InternalTransferHandler internalTransferHandler;
 
     @Transactional(isolation = Isolation.SERIALIZABLE, timeout = 10)
-    public void deposit(DepositCommand command, String clientHeader, String idempotencyKey) {
+    public void deposit(DepositCommand command, String idempotencyKey) {
         log.info("[DEPOSIT_START] accountId={}, amount={}", command.accountId(), command.amount());
-        TransactionRequestClient requestClient = parseClientOrThrow(clientHeader);
+        TransferRoute route = TransferRoute.INTERNAL_CORE;
         
         try {
             // 1. 계좌 조회 및 락 획득
             Account account = accountService.findByIdForUpdate(command.accountId());
 
             // 2. 멱등성 체크
-            Transaction existing = transactionService.findByRequestClientAndIdempotencyKey(requestClient, idempotencyKey)
+            Transaction existing = transactionService.findByTransferRouteAndIdempotencyKey(route, idempotencyKey)
                     .orElse(null);
             if (existing != null) {
                 validateIdempotencyMatch(existing, TransactionType.DEPOSIT, account, command.amount(), null);
@@ -50,7 +52,7 @@ public class TransactionFacade {
             accountService.deposit(account, command.amount());
             
             // 4. 거래 기록
-            transactionService.recordDeposit(account, command.amount(), requestClient, idempotencyKey);
+            transactionService.recordDeposit(account, command.amount(), route, idempotencyKey);
             
             log.info("[DEPOSIT_SUCCESS] accountId={}, amount={}, newBalance={}", 
                     command.accountId(), command.amount(), account.getBalance());
@@ -66,9 +68,9 @@ public class TransactionFacade {
     }
 
     @Transactional(isolation = Isolation.SERIALIZABLE, timeout = 10)
-    public void withdraw(WithdrawCommand command, String clientHeader, String idempotencyKey) {
+    public void withdraw(WithdrawCommand command, String idempotencyKey) {
         log.info("[WITHDRAW_START] accountId={}, amount={}", command.accountId(), command.amount());
-        TransactionRequestClient requestClient = parseClientOrThrow(clientHeader);
+        TransferRoute route = TransferRoute.INTERNAL_CORE;
         
         try {
             // 1. 정책 조회
@@ -86,7 +88,7 @@ public class TransactionFacade {
             Account account = accountService.findByIdForUpdate(command.accountId());
 
             // 4. 멱등성 체크
-            Transaction existing = transactionService.findByRequestClientAndIdempotencyKey(requestClient, idempotencyKey)
+            Transaction existing = transactionService.findByTransferRouteAndIdempotencyKey(route, idempotencyKey)
                     .orElse(null);
             if (existing != null) {
                 validateIdempotencyMatch(existing, TransactionType.WITHDRAW, account, command.amount(), null);
@@ -98,7 +100,7 @@ public class TransactionFacade {
             accountService.withdraw(account, command.amount());
             
             // 6. 거래 기록
-            transactionService.recordWithdraw(account, command.amount(), requestClient, idempotencyKey);
+            transactionService.recordWithdraw(account, command.amount(), route, idempotencyKey);
             
             log.info("[WITHDRAW_SUCCESS] accountId={}, amount={}, newBalance={}, todayTotal={}", 
                     command.accountId(), command.amount(), account.getBalance(), todayTotal + command.amount());
@@ -114,10 +116,10 @@ public class TransactionFacade {
     }
 
     @Transactional(isolation = Isolation.SERIALIZABLE, timeout = 10)
-    public void transfer(TransferCommand transferCommand, String clientHeader, String idempotencyKey) {
+    public void transfer(TransferCommand transferCommand, String idempotencyKey) {
         log.info("[TRANSFER_START] from={}, to={}, amount={}", 
                 transferCommand.fromAccountNumber(), transferCommand.toAccountNumber(), transferCommand.amount());
-        TransactionRequestClient requestClient = parseClientOrThrow(clientHeader);
+        TransferRoute route = TransferRoute.INTERNAL_CORE;
         
         try {
             // 1. 입력 검증
@@ -146,7 +148,7 @@ public class TransactionFacade {
                     : accountWithLargerNumber;
 
             // 5. 멱등성 체크
-            Transaction existing = transactionService.findByRequestClientAndIdempotencyKey(requestClient, idempotencyKey)
+            Transaction existing = transactionService.findByTransferRouteAndIdempotencyKey(route, idempotencyKey)
                     .orElse(null);
             if (existing != null) {
                 validateIdempotencyMatch(
@@ -160,6 +162,9 @@ public class TransactionFacade {
                         transferCommand.fromAccountNumber(), idempotencyKey);
                 return;
             }
+
+            // 6. 실행 경로 추후 타행/해외 확장
+            internalTransferHandler.handle(transferCommand);
 
             // 6. 계좌 상태 체크
             accountService.validateAccountActive(senderAccount);
@@ -181,7 +186,7 @@ public class TransactionFacade {
             accountService.transferMoney(senderAccount, receiverAccount, transferCommand.amount(), fee);
 
             // 10. 거래 기록
-            transactionService.recordTransfer(senderAccount, receiverAccount, transferCommand.amount(), fee, requestClient, idempotencyKey);
+            transactionService.recordTransfer(senderAccount, receiverAccount, transferCommand.amount(), fee, route, idempotencyKey);
             
             log.info("[TRANSFER_SUCCESS] from={}, to={}, amount={}, fee={}, fromBalance={}, toBalance={}", 
                     transferCommand.fromAccountNumber(), transferCommand.toAccountNumber(),
@@ -195,17 +200,6 @@ public class TransactionFacade {
                     transferCommand.fromAccountNumber(), transferCommand.toAccountNumber(),
                     transferCommand.amount(), e.getMessage());
             throw e;
-        }
-    }
-
-    private static TransactionRequestClient parseClientOrThrow(String raw) {
-        if (raw == null || raw.isBlank()) {
-            throw new CoreException(ErrorCode.VALIDATION_ERROR, "X-Client header is required");
-        }
-        try {
-            return TransactionRequestClient.valueOf(raw.trim().toUpperCase());
-        } catch (IllegalArgumentException e) {
-            throw new CoreException(ErrorCode.VALIDATION_ERROR, "X-Client is invalid");
         }
     }
 

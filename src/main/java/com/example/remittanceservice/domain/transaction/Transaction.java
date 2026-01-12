@@ -25,8 +25,8 @@ import lombok.NoArgsConstructor;
         name = "transactions",
         uniqueConstraints = {
                 @UniqueConstraint(
-                        name = "uk_request_client_idempotency_key",
-                        columnNames = {"requestClient", "idempotencyKey"}
+                        name = "uk_transfer_route_idempotency_key",
+                        columnNames = {"transferRoute", "idempotencyKey"}
                 )
         },
         indexes = {
@@ -41,8 +41,8 @@ public class Transaction extends BaseEntity {
     private String transactionId;
 
     @Enumerated(EnumType.STRING)
-    @Column(length = 30)
-    private TransactionRequestClient requestClient;
+    @Column(nullable = false)
+    private TransferRoute transferRoute;
 
     @Column(length = 100)
     private String idempotencyKey;
@@ -70,7 +70,7 @@ public class Transaction extends BaseEntity {
 
     private Transaction(
             String transactionId,
-            TransactionRequestClient requestClient,
+            TransferRoute transferRoute,
             String idempotencyKey,
             Account account,
             TransactionType type,
@@ -80,7 +80,7 @@ public class Transaction extends BaseEntity {
             String counterpartyAccountNumber
     ) {
         this.transactionId = transactionId;
-        this.requestClient = requestClient == null ? TransactionRequestClient.UNKNOWN : requestClient;
+        this.transferRoute = transferRoute == null ? TransferRoute.INTERNAL_CORE : transferRoute;
         this.idempotencyKey = idempotencyKey;
         this.account = account;
         this.type = type;
@@ -91,13 +91,18 @@ public class Transaction extends BaseEntity {
     }
 
     public static Transaction deposit(Account account, long amount) {
-        return deposit(account, amount, TransactionRequestClient.UNKNOWN, null);
+        return deposit(account, amount, TransferRoute.INTERNAL_CORE, null);
     }
 
-    public static Transaction deposit(Account account, long amount, TransactionRequestClient requestClient, String idempotencyKey) {
+    public static Transaction deposit(
+            Account account,
+            long amount,
+            TransferRoute transferRoute,
+            String idempotencyKey
+    ) {
         return new Transaction(
                 generateTransactionId(),
-                requestClient,
+                transferRoute,
                 idempotencyKey,
                 account,
                 TransactionType.DEPOSIT,
@@ -108,14 +113,15 @@ public class Transaction extends BaseEntity {
         );
     }
 
-    public static Transaction withdraw(Account account, long amount) {
-        return withdraw(account, amount, TransactionRequestClient.UNKNOWN, null);
-    }
-
-    public static Transaction withdraw(Account account, long amount, TransactionRequestClient requestClient, String idempotencyKey) {
+    public static Transaction withdraw(
+            Account account,
+            long amount,
+            TransferRoute transferRoute,
+            String idempotencyKey
+    ) {
         return new Transaction(
                 generateTransactionId(),
-                requestClient,
+                transferRoute,
                 idempotencyKey,
                 account,
                 TransactionType.WITHDRAW,
@@ -130,22 +136,13 @@ public class Transaction extends BaseEntity {
             Account fromAccount,
             String toAccountNumber,
             long amount,
-            long fee
-    ) {
-        return transferOut(fromAccount, toAccountNumber, amount, fee, TransactionRequestClient.UNKNOWN, null);
-    }
-
-    public static Transaction transferOut(
-            Account fromAccount,
-            String toAccountNumber,
-            long amount,
             long fee,
-            TransactionRequestClient requestClient,
+            TransferRoute transferRoute,
             String idempotencyKey
     ) {
         return new Transaction(
                 generateTransactionId(),
-                requestClient,
+                transferRoute,
                 idempotencyKey,
                 fromAccount,
                 TransactionType.TRANSFER_OUT,
@@ -159,20 +156,12 @@ public class Transaction extends BaseEntity {
     public static Transaction transferIn(
             Account toAccount,
             String fromAccountNumber,
-            long amount
-    ) {
-        return transferIn(toAccount, fromAccountNumber, amount, TransactionRequestClient.UNKNOWN);
-    }
-
-    public static Transaction transferIn(
-            Account toAccount,
-            String fromAccountNumber,
             long amount,
-            TransactionRequestClient requestClient
+            TransferRoute transferRoute
     ) {
         return new Transaction(
                 generateTransactionId(),
-                requestClient,
+                transferRoute,
                 null,
                 toAccount,
                 TransactionType.TRANSFER_IN,

@@ -3,7 +3,7 @@ package com.example.remittanceservice.infrastructure.transaction;
 import com.example.remittanceservice.domain.transaction.Transaction;
 import com.example.remittanceservice.domain.transaction.TransactionStatus;
 import com.example.remittanceservice.domain.transaction.TransactionType;
-import com.example.remittanceservice.domain.transaction.TransactionRequestClient;
+import com.example.remittanceservice.domain.transaction.TransferRoute;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -16,8 +16,8 @@ public interface TransactionJpaRepository extends JpaRepository<Transaction, Lon
 
     Optional<Transaction> findByTransactionId(String transactionId);
 
-    Optional<Transaction> findByRequestClientAndIdempotencyKey(
-            TransactionRequestClient requestClient,
+    Optional<Transaction> findByTransferRouteAndIdempotencyKey(
+            TransferRoute transferRoute,
             String idempotencyKey
     );
 

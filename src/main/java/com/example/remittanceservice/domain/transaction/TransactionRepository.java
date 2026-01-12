@@ -10,8 +10,8 @@ public interface TransactionRepository {
 
     Optional<Transaction> findByTransactionId(String transactionId);
 
-    Optional<Transaction> findByRequestClientAndIdempotencyKey(
-            TransactionRequestClient requestClient,
+    Optional<Transaction> findByTransferRouteAndIdempotencyKey(
+            TransferRoute transferRoute,
             String idempotencyKey
     );
 

@@ -4,7 +4,7 @@ import com.example.remittanceservice.domain.transaction.TransactionRepository;
 import com.example.remittanceservice.domain.transaction.Transaction;
 import com.example.remittanceservice.domain.transaction.TransactionStatus;
 import com.example.remittanceservice.domain.transaction.TransactionType;
-import com.example.remittanceservice.domain.transaction.TransactionRequestClient;
+import com.example.remittanceservice.domain.transaction.TransferRoute;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -29,11 +29,11 @@ public class TransactionRepositoryImpl implements TransactionRepository {
     }
 
     @Override
-    public Optional<Transaction> findByRequestClientAndIdempotencyKey(
-            TransactionRequestClient requestClient,
+    public Optional<Transaction> findByTransferRouteAndIdempotencyKey(
+            TransferRoute transferRoute,
             String idempotencyKey
     ) {
-        return transactionJpaRepository.findByRequestClientAndIdempotencyKey(requestClient, idempotencyKey);
+        return transactionJpaRepository.findByTransferRouteAndIdempotencyKey(transferRoute, idempotencyKey);
     }
 
     @Override

@@ -9,7 +9,7 @@ import static org.mockito.Mockito.when;
 
 import com.example.remittanceservice.domain.account.Account;
 import com.example.remittanceservice.domain.transaction.Transaction;
-import com.example.remittanceservice.domain.transaction.TransactionRequestClient;
+import com.example.remittanceservice.domain.transaction.TransferRoute;
 import com.example.remittanceservice.domain.transaction.TransactionRepository;
 import com.example.remittanceservice.domain.transaction.TransactionStatus;
 import com.example.remittanceservice.domain.transaction.TransactionType;
@@ -36,7 +36,7 @@ class TransactionServiceTest {
     void recordDeposit_savesTransaction() {
         Account account = AccountFixtures.createAccount("111111111111", "테스트");
 
-        transactionService.recordDeposit(account, 500L, TransactionRequestClient.WIREBARLEY, "dep-001");
+        transactionService.recordDeposit(account, 500L, TransferRoute.INTERNAL_CORE, "dep-001");
 
         verify(transactionRepository).save(any(Transaction.class));
     }
@@ -46,7 +46,7 @@ class TransactionServiceTest {
     void recordWithdraw_savesTransaction() {
         Account account = AccountFixtures.createAccount("111111111111", "테스트");
 
-        transactionService.recordWithdraw(account, 500L, TransactionRequestClient.WIREBARLEY, "wdr-001");
+        transactionService.recordWithdraw(account, 500L, TransferRoute.INTERNAL_CORE, "wdr-001");
 
         verify(transactionRepository).save(any(Transaction.class));
     }
@@ -62,7 +62,7 @@ class TransactionServiceTest {
                 receiverAccount,
                 1000L,
                 10L,
-                TransactionRequestClient.WIREBARLEY,
+                TransferRoute.INTERNAL_CORE,
                 "trx-001"
         );
 

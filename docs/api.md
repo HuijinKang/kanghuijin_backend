@@ -11,7 +11,6 @@
 - **Content-Type**: `application/json`
 - **계좌번호**: 서버가 발급하는 **12자리 숫자**
 - **멱등성**: 거래 API는 `X-Idempotency-Key` 헤더를 사용해 중복 요청을 방지합니다.
-- **클라이언트 구분**: 거래 API는 `X-Client` 헤더(예: `WIREBARLEY`, `KAKAO`, `TOSS`)를 **필수로** 받습니다.
 
 ### 응답 형식
 
@@ -53,14 +52,14 @@
 
 ### 입금
 - **POST** `/v1/accounts/{accountId}/deposits`
-- **Headers**: `X-Idempotency-Key`(필수), `X-Client`(필수)
+- **Headers**: `X-Idempotency-Key`(필수)
 - **Request**: `amount` (양수)
 - **Response (200)**: 성공 메시지
 - **Error**: 400 (검증 실패, 계좌 폐쇄), 404 (계좌 없음), 409 (멱등성 키 충돌)
 
 ### 출금
 - **POST** `/v1/accounts/{accountId}/withdrawals`
-- **Headers**: `X-Idempotency-Key`(필수), `X-Client`(필수)
+- **Headers**: `X-Idempotency-Key`(필수)
 - **Request**: `amount` (양수)
 - **Response (200)**: 성공 메시지
 - **정책**: 일 한도 1,000,000원
@@ -68,7 +67,7 @@
 
 ### 이체
 - **POST** `/v1/transfers`
-- **Headers**: `X-Idempotency-Key`(필수), `X-Client`(필수)
+- **Headers**: `X-Idempotency-Key`(필수)
 - **Request**: `fromAccountNumber`, `toAccountNumber`, `amount` (양수)
 - **Response (200)**: 성공 메시지
 - **정책**: 수수료 1%, 일 한도 3,000,000원

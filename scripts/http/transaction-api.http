@@ -4,7 +4,6 @@
 POST {{host}}/api/v1/accounts/{{accountId}}/deposits
 Content-Type: application/json
 X-Idempotency-Key: dep-001
-X-Client: WIREBARLEY
 
 {
   "amount": 2000
@@ -14,7 +13,6 @@ X-Client: WIREBARLEY
 POST {{host}}/api/v1/accounts/{{accountId}}/withdrawals
 Content-Type: application/json
 X-Idempotency-Key: wdr-001
-X-Client: WIREBARLEY
 
 {
   "amount": 500
@@ -24,7 +22,6 @@ X-Client: WIREBARLEY
 POST {{host}}/api/v1/transfers
 Content-Type: application/json
 X-Idempotency-Key: trx-001
-X-Client: WIREBARLEY
 
 {
   "fromAccountNumber": "{{accountNumber}}",
@@ -36,7 +33,6 @@ X-Client: WIREBARLEY
 POST {{host}}/api/v1/transfers
 Content-Type: application/json
 X-Idempotency-Key: trx-002
-X-Client: WIREBARLEY
 
 {
   "fromAccountNumber": "{{targetAccountNumber}}",
@@ -48,7 +44,6 @@ X-Client: WIREBARLEY
 POST {{host}}/api/v1/accounts/{{accountId}}/withdrawals
 Content-Type: application/json
 X-Idempotency-Key: wdr-002
-X-Client: WIREBARLEY
 
 {
   "amount": 1000001

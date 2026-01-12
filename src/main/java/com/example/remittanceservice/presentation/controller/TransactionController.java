@@ -33,12 +33,10 @@ public class TransactionController {
     public ResponseEntity<ApiResponse<Void>> deposit(
             @PathVariable long accountId,
             @RequestHeader("X-Idempotency-Key") String idempotencyKey,
-            @RequestHeader("X-Client") String client,
             @Valid @RequestBody DepositRequest request
     ) {
         transactionFacade.deposit(
                 DepositCommand.of(accountId, request.amount()),
-                client,
                 idempotencyKey
         );
         return ResponseEntity.ok(ApiResponse.success("입금이 완료되었습니다"));
@@ -49,12 +47,10 @@ public class TransactionController {
     public ResponseEntity<ApiResponse<Void>> withdraw(
             @PathVariable long accountId,
             @RequestHeader("X-Idempotency-Key") String idempotencyKey,
-            @RequestHeader("X-Client") String client,
             @Valid @RequestBody WithdrawRequest request
     ) {
         transactionFacade.withdraw(
                 WithdrawCommand.of(accountId, request.amount()),
-                client,
                 idempotencyKey
         );
         return ResponseEntity.ok(ApiResponse.success("출금이 완료되었습니다"));
@@ -64,12 +60,10 @@ public class TransactionController {
     @Operation(summary = "이체", description = "다른 계좌로 이체합니다. (수수료 1%, 일 한도 3,000,000원)")
     public ResponseEntity<ApiResponse<Void>> transfer(
             @RequestHeader("X-Idempotency-Key") String idempotencyKey,
-            @RequestHeader("X-Client") String client,
             @Valid @RequestBody TransferRequest request
     ) {
         transactionFacade.transfer(
                 TransferCommand.of(request.fromAccountNumber(), request.toAccountNumber(), request.amount()),
-                client,
                 idempotencyKey
         );
         return ResponseEntity.ok(ApiResponse.success("이체가 완료되었습니다"));
