@@ -30,7 +30,7 @@
 
 ### 계좌 생성
 - **POST** `/v1/accounts`
-- **Request**: `accountNumber` (숫자 10~14자리), `ownerName` (2~50자)
+- **Request**: `accountNumber` (숫자 10-14자리), `ownerName` (2-50자)
 - **Response (201)**: `accountId`, `accountNumber`, `ownerName`
 - **Error**: 400 (검증 실패), 409 (계좌번호 중복)
 
