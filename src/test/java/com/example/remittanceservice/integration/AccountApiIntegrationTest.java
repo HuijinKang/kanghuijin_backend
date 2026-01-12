@@ -56,7 +56,7 @@ class AccountApiIntegrationTest {
         String createdAccountNumber = data.get("accountNumber").asText();
         assertThat(createdAccountNumber).hasSize(12);
 
-        // same phoneNumber (201) - 한 명이 여러 계좌를 가질 수 있음
+        // 같은 전화 번호 (201) - 한 명이 여러 계좌를 가질 수 있음
         MvcResult createdSecond = mockMvc.perform(post("/api/v1/accounts")
                         .contentType(MediaType.APPLICATION_JSON_VALUE)
                         .content("""
@@ -81,7 +81,7 @@ class AccountApiIntegrationTest {
         mockMvc.perform(delete("/api/v1/accounts/{accountId}", accountId))
                 .andExpect(status().isOk());
 
-        // DB state check
+        // account 상태 체크
         Account account = accountJpaRepository.findById(accountId).orElseThrow();
         assertThat(account.getStatus()).isEqualTo(AccountStatus.CLOSED);
         assertThat(account.getDeletedAt()).isNotNull();
