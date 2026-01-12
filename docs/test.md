@@ -1,5 +1,15 @@
 # 테스트 가이드
 
+## 목차
+
+- 기술 스택
+- 테스트 실행
+- 환경 요구사항
+- 테스트 구조
+- 동시성 테스트
+- 테스트 성공 시나리오
+- HTTP 테스트 스크립트
+
 
 ## 기술 스택
 
@@ -47,7 +57,7 @@
 Optional<Account> findByIdForUpdate(@Param("id") long id);
 
 @Transactional(isolation = Isolation.SERIALIZABLE, timeout = 10)
-public void deposit(DepositCommand command) { }
+public void deposit(DepositCommand command, String idempotencyKey) { }
 ```
 
 ### 전략
