@@ -27,6 +27,9 @@ public class Account extends BaseEntity {
     @Column(nullable = false, length = 100)
     private String ownerName;
 
+    @Column(nullable = false, length = 20)
+    private String phoneNumber;
+
     @Column(nullable = false)
     private long balance;
 
@@ -37,17 +40,19 @@ public class Account extends BaseEntity {
     private Account(
             String accountNumber,
             String ownerName,
+            String phoneNumber,
             long initialBalance,
             AccountStatus status
     ) {
         this.accountNumber = accountNumber;
         this.ownerName = ownerName;
+        this.phoneNumber = phoneNumber;
         this.balance = initialBalance;
         this.status = status == null ? AccountStatus.ACTIVE : status;
     }
 
-    public static Account create(String accountNumber, String ownerName) {
-        return new Account(accountNumber, ownerName, 0L, AccountStatus.ACTIVE);
+    public static Account create(String accountNumber, String ownerName, String phoneNumber) {
+        return new Account(accountNumber, ownerName, phoneNumber, 0L, AccountStatus.ACTIVE);
     }
 
     public void close() {

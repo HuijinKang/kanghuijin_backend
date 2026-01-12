@@ -3,6 +3,8 @@
 ### 입금 (204)
 POST {{host}}/api/v1/accounts/{{accountId}}/deposits
 Content-Type: application/json
+X-Idempotency-Key: dep-001
+X-Client: WIREBARLEY
 
 {
   "amount": 2000
@@ -11,6 +13,8 @@ Content-Type: application/json
 ### 출금 (204)
 POST {{host}}/api/v1/accounts/{{accountId}}/withdrawals
 Content-Type: application/json
+X-Idempotency-Key: wdr-001
+X-Client: WIREBARLEY
 
 {
   "amount": 500
@@ -19,26 +23,32 @@ Content-Type: application/json
 ### 이체 (홍길동 -> 김철수) (수수료 적용) (204)
 POST {{host}}/api/v1/transfers
 Content-Type: application/json
+X-Idempotency-Key: trx-001
+X-Client: WIREBARLEY
 
 {
-  "fromAccountNumber": "123456789012",
-  "toAccountNumber": "999999999999",
+  "fromAccountNumber": "{{accountNumber}}",
+  "toAccountNumber": "{{targetAccountNumber}}",
   "amount": 10000
 }
 
 ### 이체 (김철수 -> 홍길동) (수수료 적용) (204)
 POST {{host}}/api/v1/transfers
 Content-Type: application/json
+X-Idempotency-Key: trx-002
+X-Client: WIREBARLEY
 
 {
-  "fromAccountNumber": "999999999999",
-  "toAccountNumber": "123456789012",
+  "fromAccountNumber": "{{targetAccountNumber}}",
+  "toAccountNumber": "{{accountNumber}}",
   "amount": 5000
 }
 
 ### 출금 한도 초과 (400)
 POST {{host}}/api/v1/accounts/{{accountId}}/withdrawals
 Content-Type: application/json
+X-Idempotency-Key: wdr-002
+X-Client: WIREBARLEY
 
 {
   "amount": 1000001

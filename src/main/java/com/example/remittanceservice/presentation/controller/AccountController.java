@@ -36,7 +36,7 @@ public class AccountController {
             @Valid @RequestBody CreateAccountRequest request
     ) {
         CreateAccountResult created = accountFacade.createAccount(
-                CreateAccountCommand.of(request.accountNumber(), request.ownerName())
+                CreateAccountCommand.of(request.ownerName(), request.phoneNumber())
         );
 
         CreateAccountResponse response = CreateAccountResponse.of(

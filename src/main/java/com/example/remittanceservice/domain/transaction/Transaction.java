@@ -11,18 +11,41 @@ import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
+import java.time.LocalDate;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
+import java.util.UUID;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "transactions", indexes = {
+@Table(
+        name = "transactions",
+        uniqueConstraints = {
+                @UniqueConstraint(
+                        name = "uk_request_client_idempotency_key",
+                        columnNames = {"requestClient", "idempotencyKey"}
+                )
+        },
+        indexes = {
         @Index(name = "idx_account_type_created", columnList = "account_id, type, created_at"),
         @Index(name = "idx_account_created_desc", columnList = "account_id, created_at DESC")
 })
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Transaction extends BaseEntity {
+
+    @Column(nullable = false, unique = true, length = 50)
+    private String transactionId;
+
+    @Enumerated(EnumType.STRING)
+    @Column(length = 30)
+    private TransactionRequestClient requestClient;
+
+    @Column(length = 100)
+    private String idempotencyKey;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "account_id", nullable = false)
@@ -46,6 +69,9 @@ public class Transaction extends BaseEntity {
     private String counterpartyAccountNumber;
 
     private Transaction(
+            String transactionId,
+            TransactionRequestClient requestClient,
+            String idempotencyKey,
             Account account,
             TransactionType type,
             TransactionStatus status,
@@ -53,6 +79,9 @@ public class Transaction extends BaseEntity {
             long fee,
             String counterpartyAccountNumber
     ) {
+        this.transactionId = transactionId;
+        this.requestClient = requestClient == null ? TransactionRequestClient.UNKNOWN : requestClient;
+        this.idempotencyKey = idempotencyKey;
         this.account = account;
         this.type = type;
         this.status = status == null ? TransactionStatus.SUCCESS : status;
@@ -62,7 +91,14 @@ public class Transaction extends BaseEntity {
     }
 
     public static Transaction deposit(Account account, long amount) {
+        return deposit(account, amount, TransactionRequestClient.UNKNOWN, null);
+    }
+
+    public static Transaction deposit(Account account, long amount, TransactionRequestClient requestClient, String idempotencyKey) {
         return new Transaction(
+                generateTransactionId(),
+                requestClient,
+                idempotencyKey,
                 account,
                 TransactionType.DEPOSIT,
                 TransactionStatus.SUCCESS,
@@ -73,7 +109,14 @@ public class Transaction extends BaseEntity {
     }
 
     public static Transaction withdraw(Account account, long amount) {
+        return withdraw(account, amount, TransactionRequestClient.UNKNOWN, null);
+    }
+
+    public static Transaction withdraw(Account account, long amount, TransactionRequestClient requestClient, String idempotencyKey) {
         return new Transaction(
+                generateTransactionId(),
+                requestClient,
+                idempotencyKey,
                 account,
                 TransactionType.WITHDRAW,
                 TransactionStatus.SUCCESS,
@@ -89,7 +132,21 @@ public class Transaction extends BaseEntity {
             long amount,
             long fee
     ) {
+        return transferOut(fromAccount, toAccountNumber, amount, fee, TransactionRequestClient.UNKNOWN, null);
+    }
+
+    public static Transaction transferOut(
+            Account fromAccount,
+            String toAccountNumber,
+            long amount,
+            long fee,
+            TransactionRequestClient requestClient,
+            String idempotencyKey
+    ) {
         return new Transaction(
+                generateTransactionId(),
+                requestClient,
+                idempotencyKey,
                 fromAccount,
                 TransactionType.TRANSFER_OUT,
                 TransactionStatus.SUCCESS,
@@ -104,7 +161,19 @@ public class Transaction extends BaseEntity {
             String fromAccountNumber,
             long amount
     ) {
+        return transferIn(toAccount, fromAccountNumber, amount, TransactionRequestClient.UNKNOWN);
+    }
+
+    public static Transaction transferIn(
+            Account toAccount,
+            String fromAccountNumber,
+            long amount,
+            TransactionRequestClient requestClient
+    ) {
         return new Transaction(
+                generateTransactionId(),
+                requestClient,
+                null,
                 toAccount,
                 TransactionType.TRANSFER_IN,
                 TransactionStatus.SUCCESS,
@@ -112,5 +181,10 @@ public class Transaction extends BaseEntity {
                 0L,
                 fromAccountNumber
         );
+    }
+
+    private static String generateTransactionId() {
+        String datePart = LocalDate.now(ZoneOffset.UTC).format(DateTimeFormatter.BASIC_ISO_DATE);
+        return "TRX-" + datePart + "-" + UUID.randomUUID();
     }
 }

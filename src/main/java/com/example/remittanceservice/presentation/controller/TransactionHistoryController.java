@@ -27,7 +27,7 @@ public class TransactionHistoryController {
     @Operation(summary = "입금 내역 조회", description = "지정 계좌의 입금 내역만 최신순으로 조회합니다. (cursor pagination)")
     public ResponseEntity<ApiResponse<DepositHistoryResponse>> getDeposits(
             @PathVariable long accountId,
-            @RequestParam(required = false) Long cursor,
+            @RequestParam(required = false) String cursor,
             @RequestParam(required = false, defaultValue = "50") int limit
     ) {
         DepositHistoryResponse response = transactionHistoryFacade.getDeposits(accountId, cursor, limit);
@@ -38,7 +38,7 @@ public class TransactionHistoryController {
     @Operation(summary = "출금 내역 조회", description = "지정 계좌의 출금 내역만 최신순으로 조회합니다. (cursor pagination)")
     public ResponseEntity<ApiResponse<WithdrawHistoryResponse>> getWithdrawals(
             @PathVariable long accountId,
-            @RequestParam(required = false) Long cursor,
+            @RequestParam(required = false) String cursor,
             @RequestParam(required = false, defaultValue = "50") int limit
     ) {
         WithdrawHistoryResponse response = transactionHistoryFacade.getWithdrawals(accountId, cursor, limit);
@@ -49,7 +49,7 @@ public class TransactionHistoryController {
     @Operation(summary = "보낸 이체 내역 조회", description = "지정 계좌에서 보낸 이체 내역만 최신순으로 조회합니다. (cursor pagination)")
     public ResponseEntity<ApiResponse<TransferHistoryResponse>> getSentTransfers(
             @PathVariable long accountId,
-            @RequestParam(required = false) Long cursor,
+            @RequestParam(required = false) String cursor,
             @RequestParam(required = false, defaultValue = "50") int limit
     ) {
         TransferHistoryResponse response = transactionHistoryFacade.getSentTransfers(accountId, cursor, limit);
@@ -60,7 +60,7 @@ public class TransactionHistoryController {
     @Operation(summary = "받은 이체 내역 조회", description = "지정 계좌로 받은 이체 내역만 최신순으로 조회합니다. (cursor pagination)")
     public ResponseEntity<ApiResponse<TransferHistoryResponse>> getReceivedTransfers(
             @PathVariable long accountId,
-            @RequestParam(required = false) Long cursor,
+            @RequestParam(required = false) String cursor,
             @RequestParam(required = false, defaultValue = "50") int limit
     ) {
         TransferHistoryResponse response = transactionHistoryFacade.getReceivedTransfers(accountId, cursor, limit);

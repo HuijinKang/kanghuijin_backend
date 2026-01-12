@@ -7,6 +7,7 @@ import com.example.remittanceservice.application.command.DepositCommand;
 import com.example.remittanceservice.application.command.TransferCommand;
 import com.example.remittanceservice.application.facade.TransactionFacade;
 import com.example.remittanceservice.domain.account.Account;
+import com.example.remittanceservice.domain.transaction.TransactionRequestClient;
 import com.example.remittanceservice.fixture.AccountFixtures;
 import com.example.remittanceservice.fixture.DatabaseFixtures;
 import com.example.remittanceservice.infrastructure.account.AccountJpaRepository;
@@ -64,7 +65,11 @@ class ConcurrencyTest {
         for (int i = 0; i < threadCount; i++) {
             executorService.submit(() -> {
                 try {
-                    transactionFacade.deposit(DepositCommand.of(account.getId(), depositAmount));
+                    transactionFacade.deposit(
+                            DepositCommand.of(account.getId(), depositAmount),
+                            TransactionRequestClient.WIREBARLEY.name(),
+                            "dep-" + Thread.currentThread().getId()
+                    );
                 } finally {
                     latch.countDown();
                 }
@@ -102,11 +107,15 @@ class ConcurrencyTest {
             // 첫번째 -> 두번째
             executorService.submit(() -> {
                 try {
-                    transactionFacade.transfer(TransferCommand.of(
-                            firstAccount.getAccountNumber(),
-                            secondAccount.getAccountNumber(),
-                            transferAmount
-                    ));
+                    transactionFacade.transfer(
+                            TransferCommand.of(
+                                    firstAccount.getAccountNumber(),
+                                    secondAccount.getAccountNumber(),
+                                    transferAmount
+                            ),
+                            TransactionRequestClient.WIREBARLEY.name(),
+                            "trx-a-" + Thread.currentThread().getId() + "-" + System.nanoTime()
+                    );
                 } finally {
                     latch.countDown();
                 }
@@ -115,11 +124,15 @@ class ConcurrencyTest {
             // 두번째 -> 첫번째
             executorService.submit(() -> {
                 try {
-                    transactionFacade.transfer(TransferCommand.of(
-                            secondAccount.getAccountNumber(),
-                            firstAccount.getAccountNumber(),
-                            transferAmount
-                    ));
+                    transactionFacade.transfer(
+                            TransferCommand.of(
+                                    secondAccount.getAccountNumber(),
+                                    firstAccount.getAccountNumber(),
+                                    transferAmount
+                            ),
+                            TransactionRequestClient.WIREBARLEY.name(),
+                            "trx-b-" + Thread.currentThread().getId() + "-" + System.nanoTime()
+                    );
                 } finally {
                     latch.countDown();
                 }

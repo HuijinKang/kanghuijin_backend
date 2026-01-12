@@ -9,6 +9,7 @@ import static org.mockito.Mockito.when;
 
 import com.example.remittanceservice.domain.account.Account;
 import com.example.remittanceservice.domain.transaction.Transaction;
+import com.example.remittanceservice.domain.transaction.TransactionRequestClient;
 import com.example.remittanceservice.domain.transaction.TransactionRepository;
 import com.example.remittanceservice.domain.transaction.TransactionStatus;
 import com.example.remittanceservice.domain.transaction.TransactionType;
@@ -35,7 +36,7 @@ class TransactionServiceTest {
     void recordDeposit_savesTransaction() {
         Account account = AccountFixtures.createAccount("111111111111", "테스트");
 
-        transactionService.recordDeposit(account, 500L);
+        transactionService.recordDeposit(account, 500L, TransactionRequestClient.WIREBARLEY, "dep-001");
 
         verify(transactionRepository).save(any(Transaction.class));
     }
@@ -45,7 +46,7 @@ class TransactionServiceTest {
     void recordWithdraw_savesTransaction() {
         Account account = AccountFixtures.createAccount("111111111111", "테스트");
 
-        transactionService.recordWithdraw(account, 500L);
+        transactionService.recordWithdraw(account, 500L, TransactionRequestClient.WIREBARLEY, "wdr-001");
 
         verify(transactionRepository).save(any(Transaction.class));
     }
@@ -56,7 +57,14 @@ class TransactionServiceTest {
         Account senderAccount = AccountFixtures.createAccount("111111111111", "송금인");
         Account receiverAccount = AccountFixtures.createAccount("222222222222", "수취인");
 
-        transactionService.recordTransfer(senderAccount, receiverAccount, 1000L, 10L);
+        transactionService.recordTransfer(
+                senderAccount,
+                receiverAccount,
+                1000L,
+                10L,
+                TransactionRequestClient.WIREBARLEY,
+                "trx-001"
+        );
 
         verify(transactionRepository, times(2)).save(any(Transaction.class));
     }

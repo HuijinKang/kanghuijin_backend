@@ -10,6 +10,7 @@ public enum ErrorCode {
 
     NOT_FOUND(HttpStatus.NOT_FOUND, "대상을 찾을 수 없습니다."),
     DUPLICATE_ACCOUNT(HttpStatus.CONFLICT, "이미 존재하는 계좌입니다."),
+    IDEMPOTENCY_CONFLICT(HttpStatus.CONFLICT, "멱등성 키 충돌이 발생했습니다."),
     ACCOUNT_CLOSED(HttpStatus.BAD_REQUEST, "해지된 계좌입니다."),
     INSUFFICIENT_BALANCE(HttpStatus.BAD_REQUEST, "잔액이 부족합니다."),
     DAILY_LIMIT_EXCEEDED(HttpStatus.BAD_REQUEST, "일 한도를 초과했습니다."),

@@ -5,12 +5,13 @@ POST {{host}}/api/v1/accounts
 Content-Type: application/json
 
 {
-  "accountNumber": "123456789012",
-  "ownerName": "홍길동"
+  "ownerName": "홍길동",
+  "phoneNumber": "01012345678"
 }
 
 > {%
   client.global.set("accountId", response.body.data.accountId);
+  client.global.set("accountNumber", response.body.data.accountNumber);
 %}
 
 ### (준비 2) 계좌 생성 - 이체 대상 계좌 (201)
@@ -18,20 +19,24 @@ POST {{host}}/api/v1/accounts
 Content-Type: application/json
 
 {
-  "accountNumber": "999999999999",
-  "ownerName": "김철수"
+  "ownerName": "김철수",
+  "phoneNumber": "01098765432"
 }
+
+> {%
+  client.global.set("targetAccountNumber", response.body.data.accountNumber);
+%}
 
 ### 계좌 상세 조회 (200)
 GET {{host}}/api/v1/accounts/{{accountId}}
 
-### 계좌 생성 중복 (409)
+### 계좌 생성 (한 명이 여러 계좌를 생성 가능) (201)
 POST {{host}}/api/v1/accounts
 Content-Type: application/json
 
 {
-  "accountNumber": "123456789012",
-  "ownerName": "홍길동"
+  "ownerName": "홍길동",
+  "phoneNumber": "01012345678"
 }
 
 ### 계좌 삭제(해지) (204)

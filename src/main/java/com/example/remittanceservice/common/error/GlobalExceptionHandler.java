@@ -41,8 +41,8 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<ApiResponse<ErrorResponse>> handleDataIntegrity(DataIntegrityViolationException e) {
         log.error("[DATA_INTEGRITY_VIOLATION] message={}", e.getMessage());
-        ErrorResponse errorResponse = ErrorResponse.of(ErrorCode.DUPLICATE_ACCOUNT);
-        return ResponseEntity.status(ErrorCode.DUPLICATE_ACCOUNT.getHttpStatus().value())
+        ErrorResponse errorResponse = ErrorResponse.of(ErrorCode.INTERNAL_ERROR);
+        return ResponseEntity.status(ErrorCode.INTERNAL_ERROR.getHttpStatus().value())
                 .body(ApiResponse.error(errorResponse.message()));
     }
 

@@ -10,60 +10,60 @@ public final class TransactionHistoryDto {
 
     public record DepositHistoryResponse(
             List<DepositHistoryItem> items,
-            Long nextCursor
+            String nextCursor
     ) {
-        public static DepositHistoryResponse of(List<DepositHistoryItem> items, Long nextCursor) {
+        public static DepositHistoryResponse of(List<DepositHistoryItem> items, String nextCursor) {
             return new DepositHistoryResponse(items, nextCursor);
         }
     }
 
     public record DepositHistoryItem(
-            long transactionId,
+            String transactionId,
             long amount,
             Instant createdAt
     ) {
-        public static DepositHistoryItem of(long transactionId, long amount, Instant createdAt) {
+        public static DepositHistoryItem of(String transactionId, long amount, Instant createdAt) {
             return new DepositHistoryItem(transactionId, amount, createdAt);
         }
     }
 
     public record WithdrawHistoryResponse(
             List<WithdrawHistoryItem> items,
-            Long nextCursor
+            String nextCursor
     ) {
-        public static WithdrawHistoryResponse of(List<WithdrawHistoryItem> items, Long nextCursor) {
+        public static WithdrawHistoryResponse of(List<WithdrawHistoryItem> items, String nextCursor) {
             return new WithdrawHistoryResponse(items, nextCursor);
         }
     }
 
     public record WithdrawHistoryItem(
-            long transactionId,
+            String transactionId,
             long amount,
             Instant createdAt
     ) {
-        public static WithdrawHistoryItem of(long transactionId, long amount, Instant createdAt) {
+        public static WithdrawHistoryItem of(String transactionId, long amount, Instant createdAt) {
             return new WithdrawHistoryItem(transactionId, amount, createdAt);
         }
     }
 
     public record TransferHistoryResponse(
             List<TransferHistoryItem> items,
-            Long nextCursor
+            String nextCursor
     ) {
-        public static TransferHistoryResponse of(List<TransferHistoryItem> items, Long nextCursor) {
+        public static TransferHistoryResponse of(List<TransferHistoryItem> items, String nextCursor) {
             return new TransferHistoryResponse(items, nextCursor);
         }
     }
 
     public record TransferHistoryItem(
-            long transactionId,
+            String transactionId,
             long amount,
             long fee,
             String counterpartyAccountNumber,
             Instant createdAt
     ) {
         public static TransferHistoryItem of(
-                long transactionId,
+                String transactionId,
                 long amount,
                 long fee,
                 String counterpartyAccountNumber,

@@ -21,7 +21,7 @@ public class TransactionHistoryFacade {
     private final TransactionHistoryService transactionHistoryService;
     private final AccountService accountService;
 
-    public DepositHistoryResponse getDeposits(long accountId, Long cursorExclusive, int limit) {
+    public DepositHistoryResponse getDeposits(long accountId, String cursorExclusive, int limit) {
         accountService.validateAccountExists(accountId);
 
         TransactionHistoryPage page = transactionHistoryService.getDepositPage(accountId, cursorExclusive, limit);
@@ -29,14 +29,14 @@ public class TransactionHistoryFacade {
         List<DepositHistoryItem> items = page.transactions().stream()
                 .map(transaction -> {
                     Instant createdAt = transaction.getCreatedAt() == null ? null : transaction.getCreatedAt().toInstant();
-                    return DepositHistoryItem.of(transaction.getId(), transaction.getAmount(), createdAt);
+                    return DepositHistoryItem.of(transaction.getTransactionId(), transaction.getAmount(), createdAt);
                 })
                 .toList();
 
         return DepositHistoryResponse.of(items, page.nextCursor());
     }
 
-    public WithdrawHistoryResponse getWithdrawals(long accountId, Long cursorExclusive, int limit) {
+    public WithdrawHistoryResponse getWithdrawals(long accountId, String cursorExclusive, int limit) {
         accountService.validateAccountExists(accountId);
 
         TransactionHistoryPage page = transactionHistoryService.getWithdrawPage(accountId, cursorExclusive, limit);
@@ -44,14 +44,14 @@ public class TransactionHistoryFacade {
         List<WithdrawHistoryItem> items = page.transactions().stream()
                 .map(transaction -> {
                     Instant createdAt = transaction.getCreatedAt() == null ? null : transaction.getCreatedAt().toInstant();
-                    return WithdrawHistoryItem.of(transaction.getId(), transaction.getAmount(), createdAt);
+                    return WithdrawHistoryItem.of(transaction.getTransactionId(), transaction.getAmount(), createdAt);
                 })
                 .toList();
 
         return WithdrawHistoryResponse.of(items, page.nextCursor());
     }
 
-    public TransferHistoryResponse getSentTransfers(long accountId, Long cursorExclusive, int limit) {
+    public TransferHistoryResponse getSentTransfers(long accountId, String cursorExclusive, int limit) {
         accountService.validateAccountExists(accountId);
 
         TransactionHistoryPage page = transactionHistoryService.getSentTransferPage(accountId, cursorExclusive, limit);
@@ -60,7 +60,7 @@ public class TransactionHistoryFacade {
                 .map(transaction -> {
                     Instant createdAt = transaction.getCreatedAt() == null ? null : transaction.getCreatedAt().toInstant();
                     return TransferHistoryItem.of(
-                            transaction.getId(),
+                            transaction.getTransactionId(),
                             transaction.getAmount(),
                             transaction.getFee(),
                             transaction.getCounterpartyAccountNumber(),
@@ -72,7 +72,7 @@ public class TransactionHistoryFacade {
         return TransferHistoryResponse.of(items, page.nextCursor());
     }
 
-    public TransferHistoryResponse getReceivedTransfers(long accountId, Long cursorExclusive, int limit) {
+    public TransferHistoryResponse getReceivedTransfers(long accountId, String cursorExclusive, int limit) {
         accountService.validateAccountExists(accountId);
 
         TransactionHistoryPage page = transactionHistoryService.getReceivedTransferPage(accountId, cursorExclusive, limit);
@@ -81,7 +81,7 @@ public class TransactionHistoryFacade {
                 .map(transaction -> {
                     Instant createdAt = transaction.getCreatedAt() == null ? null : transaction.getCreatedAt().toInstant();
                     return TransferHistoryItem.of(
-                            transaction.getId(),
+                            transaction.getTransactionId(),
                             transaction.getAmount(),
                             transaction.getFee(),
                             transaction.getCounterpartyAccountNumber(),

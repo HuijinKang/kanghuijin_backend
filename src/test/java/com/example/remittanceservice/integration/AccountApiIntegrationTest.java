@@ -8,7 +8,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.example.remittanceservice.TestcontainersConfiguration;
 import com.example.remittanceservice.domain.account.Account;
 import com.example.remittanceservice.domain.account.AccountStatus;
-import com.example.remittanceservice.fixture.AccountFixtures;
 import com.example.remittanceservice.infrastructure.account.AccountJpaRepository;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -37,36 +36,42 @@ class AccountApiIntegrationTest {
     AccountJpaRepository accountJpaRepository;
 
     @Test
-    @DisplayName("계좌 생성/삭제 통합 테스트: 생성 201, 중복 409, 삭제 200")
+    @DisplayName("계좌 생성/삭제 통합 테스트: 생성 201, 동일 전화번호도 추가 생성 가능 201, 삭제 200")
     void accountCreateDeleteFlow() throws Exception {
-        String accountNumber = AccountFixtures.generateAccountNumber();
-
         // create (201)
         MvcResult created = mockMvc.perform(post("/api/v1/accounts")
                         .contentType(MediaType.APPLICATION_JSON_VALUE)
                         .content("""
                                 {
-                                  "accountNumber": "%s",
-                                  "ownerName": "홍길동"
+                                  "ownerName": "홍길동",
+                                  "phoneNumber": "01012345678"
                                 }
-                                """.formatted(accountNumber)))
+                                """))
                 .andExpect(status().isCreated())
                 .andReturn();
 
         JsonNode createdJson = objectMapper.readTree(created.getResponse().getContentAsString());
         JsonNode data = createdJson.get("data");
         long accountId = data.get("accountId").asLong();
+        String createdAccountNumber = data.get("accountNumber").asText();
+        assertThat(createdAccountNumber).hasSize(12);
 
-        // duplicate (409)
-        mockMvc.perform(post("/api/v1/accounts")
+        // same phoneNumber (201) - 한 명이 여러 계좌를 가질 수 있음
+        MvcResult createdSecond = mockMvc.perform(post("/api/v1/accounts")
                         .contentType(MediaType.APPLICATION_JSON_VALUE)
                         .content("""
                                 {
-                                  "accountNumber": "%s",
-                                  "ownerName": "홍길동"
+                                  "ownerName": "홍길동",
+                                  "phoneNumber": "01012345678"
                                 }
-                                """.formatted(accountNumber)))
-                .andExpect(status().isConflict());
+                                """))
+                .andExpect(status().isCreated())
+                .andReturn();
+
+        JsonNode createdSecondJson = objectMapper.readTree(createdSecond.getResponse().getContentAsString());
+        String secondAccountNumber = createdSecondJson.get("data").get("accountNumber").asText();
+        assertThat(secondAccountNumber).hasSize(12);
+        assertThat(secondAccountNumber).isNotEqualTo(createdAccountNumber);
 
         // delete (200)
         mockMvc.perform(delete("/api/v1/accounts/{accountId}", accountId))
@@ -83,14 +88,14 @@ class AccountApiIntegrationTest {
     }
 
     @Test
-    @DisplayName("계좌 생성 통합: 계좌번호 형식 오류면 400")
-    void createAccount_invalidAccountNumber_400() throws Exception {
+    @DisplayName("계좌 생성 통합: 전화번호 형식 오류면 400")
+    void createAccount_invalidPhoneNumber_400() throws Exception {
         mockMvc.perform(post("/api/v1/accounts")
                         .contentType(MediaType.APPLICATION_JSON_VALUE)
                         .content("""
                                 {
-                                  "accountNumber": "123-456",
-                                  "ownerName": "홍길동"
+                                  "ownerName": "홍길동",
+                                  "phoneNumber": "010-1234-5678"
                                 }
                                 """))
                 .andExpect(status().isBadRequest());

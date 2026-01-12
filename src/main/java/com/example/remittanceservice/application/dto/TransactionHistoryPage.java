@@ -5,6 +5,6 @@ import java.util.List;
 
 public record TransactionHistoryPage(
         List<Transaction> transactions,
-        Long nextCursor
+        String nextCursor
 ) {
 }
