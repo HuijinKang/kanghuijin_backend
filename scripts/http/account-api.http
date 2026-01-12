@@ -30,21 +30,11 @@ Content-Type: application/json
 ### 계좌 상세 조회 (200)
 GET {{host}}/api/v1/accounts/{{accountId}}
 
-### 계좌 생성 (한 명이 여러 계좌를 생성 가능) (201)
-POST {{host}}/api/v1/accounts
-Content-Type: application/json
-
-{
-  "ownerName": "홍길동",
-  "phoneNumber": "01012345678"
-}
-
-### 계좌 삭제(해지) (204)
-DELETE {{host}}/api/v1/accounts/{{accountId}}
-
 ### 없는 계좌 조회 (404)
 GET {{host}}/api/v1/accounts/99999999
 
 ### 없는 계좌 삭제 (404)
 DELETE {{host}}/api/v1/accounts/99999999
 
+### 계좌 삭제(해지) (마지막에 테스트 권장) (204)
+DELETE {{host}}/api/v1/accounts/{{accountId}}

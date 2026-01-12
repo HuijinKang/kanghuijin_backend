@@ -6,7 +6,7 @@ Content-Type: application/json
 X-Idempotency-Key: dep-001
 
 {
-  "amount": 2000
+  "amount": 10000
 }
 
 ### 출금 (204)
@@ -15,7 +15,7 @@ Content-Type: application/json
 X-Idempotency-Key: wdr-001
 
 {
-  "amount": 500
+  "amount": 1500
 }
 
 ### 이체 (홍길동 -> 김철수) (수수료 적용) (204)
@@ -26,7 +26,7 @@ X-Idempotency-Key: trx-001
 {
   "fromAccountNumber": "{{accountNumber}}",
   "toAccountNumber": "{{targetAccountNumber}}",
-  "amount": 10000
+  "amount": 2000
 }
 
 ### 이체 (김철수 -> 홍길동) (수수료 적용) (204)
@@ -37,7 +37,7 @@ X-Idempotency-Key: trx-002
 {
   "fromAccountNumber": "{{targetAccountNumber}}",
   "toAccountNumber": "{{accountNumber}}",
-  "amount": 5000
+  "amount": 1000
 }
 
 ### 출금 한도 초과 (400)

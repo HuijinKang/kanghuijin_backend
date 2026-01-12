@@ -70,16 +70,17 @@ docker compose up --build
 
 ### 1. 동시성 제어
 
-비관적 락(Pessimistic Write Lock)과 트랜잭션 타임아웃을 사용하여 계좌 잔액의 동시성 문제를 해결합니다.
+- 비관적 락(Pessimistic Write Lock)과 트랜잭션 타임아웃을 사용하여 계좌 잔액의 동시성 문제를 해결합니다.
 
-### 2. 성능 최적화 (DB 인덱스)
+### 2. 인덱스 설계
 
-자주 사용되는 쿼리의 성능을 최적화하기 위해 적절한 인덱스를 설정했습니다.
+- **거래내역 조회 최적화**: `transactions(account_id, type, created_at)` 인덱스 기반으로 최신순 조회/커서 페이징(`account_id, created_at DESC`)을 구성했습니다.
+- **멱등성 중복 방지**: `transactions(transfer_route, idempotency_key)` 유니크 제약으로 중복 실행을 차단합니다.
 
 ### 3. 테스트
 
-자세한 테스트 전략, 동시성 테스트, HTTP 테스트 스크립트는 [docs/test.md](docs/test.md)를 참고 부탁드립니다.
+- 자세한 테스트 전략, 동시성 테스트, HTTP 테스트 스크립트는 [docs/test.md](docs/test.md)를 참고 부탁드립니다.
 
 ### 4. 문서화
 
-API 명세, 시스템 플로우 차트, 테스트 가이드를 작성하여 프로젝트 이해도를 높였습니다.
+- API 명세, 시스템 플로우 차트, 테스트 가이드를 작성하여 프로젝트 이해도를 높였습니다.
